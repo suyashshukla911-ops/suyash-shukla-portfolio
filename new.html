@@ -161,8 +161,8 @@
 
         .reveal {
             opacity: 0;
-            transform: translateY(24px);
-            transition: opacity .7s ease, transform .7s ease;
+            transform: translateY(10px);
+            transition: opacity .35s ease, transform .35s ease;
         }
 
         .reveal.in {
@@ -175,59 +175,6 @@
                 opacity: 1;
                 transform: none;
                 transition: none;
-            }
-        }
-
-        /* =========================================
-   PREMIUM CINEMATIC SECTION TRANSITIONS
-   Transparent → Translucent → Opaque
-   Scroll Down + Scroll Up
-   ========================================= */
-
-        section:not(.hero) {
-            --section-opacity: 0.28;
-            --section-y: 52px;
-            --section-rx: 4deg;
-            --section-ry: 0deg;
-            --section-scale: 0.965;
-            --section-blur: 3px;
-
-            position: relative;
-            opacity: var(--section-opacity);
-
-            transform:
-                perspective(1600px) translate3d(0, var(--section-y), 0) rotateX(var(--section-rx)) rotateY(var(--section-ry)) scale(var(--section-scale));
-
-            transform-origin: center center;
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-
-            filter: blur(var(--section-blur));
-
-            will-change: opacity, transform, filter;
-        }
-
-        html.section-motion-ready section:not(.hero) {
-            opacity: var(--section-opacity);
-
-            transform:
-                perspective(1600px) translate3d(0, var(--section-y), 0) rotateX(var(--section-rx)) rotateY(var(--section-ry)) scale(var(--section-scale));
-
-            filter: blur(var(--section-blur));
-        }
-
-        /* Keep the section edges visually stable while the
-   contents move through the cinematic transition. */
-        html.section-motion-ready section:not(.hero)>.wrap {
-            transform: translateZ(0);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            section:not(.hero) {
-                opacity: 1 !important;
-                transform: none !important;
-                filter: none !important;
-                will-change: auto;
             }
         }
 
@@ -529,6 +476,16 @@
 
         body.cursor-ready {
             cursor: none;
+        }
+
+        /* Disable the custom cursor overlay while modal/lightbox UI is open. */
+        body.lightbox-open {
+            cursor: default !important;
+        }
+
+        body.lightbox-open .custom-cursor,
+        body.lightbox-open .custom-cursor-dot {
+            display: none !important;
         }
 
         body.cursor-ready a,
@@ -2112,6 +2069,258 @@ MOBILE
             object-fit: cover;
         }
 
+        /* ================= PROJECT PHOTO LIGHTBOX ================= */
+
+        .project-photo-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 220;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(14px, 3vw, 34px);
+            background: rgba(22, 18, 14, .88);
+            backdrop-filter: blur(10px);
+        }
+
+        .project-photo-lightbox.open {
+            display: flex;
+        }
+
+        .project-photo-dialog {
+            position: relative;
+            width: min(1280px, 100%);
+            max-height: 94vh;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, .14);
+            border-radius: 22px;
+            background: linear-gradient(145deg, rgba(44, 39, 33, .98), rgba(28, 25, 21, .98));
+            box-shadow: 0 36px 110px rgba(0, 0, 0, .42);
+            animation: projectPhotoIn .28s ease both;
+            color: #fff;
+        }
+
+        @keyframes projectPhotoIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .project-photo-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 4;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, .22);
+            border-radius: 50%;
+            background: rgba(20, 18, 15, .64);
+            color: #fff;
+            cursor: pointer;
+            transition: transform .2s ease, background .2s ease, border-color .2s ease;
+        }
+
+        .project-photo-close:hover {
+            transform: rotate(90deg);
+            background: var(--cyan);
+            border-color: var(--cyan);
+        }
+
+        .project-photo-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 4px 56px 14px 4px;
+        }
+
+        .project-photo-kicker {
+            font: 500 .68rem var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            color: rgba(255, 255, 255, .58);
+        }
+
+        .project-photo-title {
+            margin-top: 4px;
+            font: 700 clamp(1.15rem, 2vw, 1.65rem) var(--font-display);
+            color: #fff;
+        }
+
+        .project-photo-stage {
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr) 48px;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .project-photo-nav {
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255, 255, 255, .22);
+            border-radius: 50%;
+            background: rgba(20, 18, 15, .56);
+            color: #fff;
+            cursor: pointer;
+            transition: transform .2s ease, background .2s ease, border-color .2s ease;
+        }
+
+        .project-photo-nav:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: var(--cyan);
+            border-color: var(--cyan);
+        }
+
+        .project-photo-nav:disabled {
+            opacity: .35;
+            cursor: default;
+        }
+
+        .project-photo-frame {
+            position: relative;
+            min-height: min(67vh, 720px);
+            max-height: 74vh;
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 16px;
+            background: #171513;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .project-photo-frame::after {
+            content: 'CLICK OUTSIDE TO CLOSE';
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, .34);
+            color: rgba(255, 255, 255, .58);
+            font: 500 .58rem var(--font-mono);
+            letter-spacing: .05em;
+            pointer-events: none;
+        }
+
+        .project-photo-frame img {
+            width: 100%;
+            height: 100%;
+            max-height: 74vh;
+            object-fit: contain;
+            transform: scale(.985);
+            opacity: .02;
+            transition: opacity .22s ease, transform .28s ease;
+        }
+
+        .project-photo-frame img.loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .project-photo-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .project-photo-caption {
+            min-width: 0;
+            color: rgba(255, 255, 255, .68);
+            font: 500 .68rem/1.5 var(--font-mono);
+        }
+
+        .project-photo-counter {
+            flex: 0 0 auto;
+            padding: 5px 8px;
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 999px;
+            color: rgba(255, 255, 255, .82);
+            font: 500 .68rem var(--font-mono);
+        }
+
+        .project-photo-thumbs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+            padding: 2px 2px 3px;
+            scrollbar-width: thin;
+        }
+
+        .project-photo-thumb {
+            width: 78px;
+            height: 56px;
+            flex: 0 0 auto;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 9px;
+            overflow: hidden;
+            background: #171513;
+            cursor: pointer;
+            opacity: .62;
+            transition: opacity .2s ease, transform .2s ease, border-color .2s ease;
+        }
+
+        .project-photo-thumb:hover {
+            opacity: .9;
+            transform: translateY(-2px);
+        }
+
+        .project-photo-thumb.active {
+            opacity: 1;
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 2px rgba(47, 127, 120, .16);
+        }
+
+        .project-photo-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-gallery-main[data-gallery-main] img,
+        .modal-project-gallery-main img {
+            cursor: pointer;
+        }
+
+        @media (max-width: 760px) {
+            .project-photo-lightbox {
+                padding: 10px;
+            }
+
+            .project-photo-dialog {
+                padding: 12px;
+            }
+
+            .project-photo-stage {
+                grid-template-columns: 36px minmax(0, 1fr) 36px;
+                gap: 6px;
+            }
+
+            .project-photo-nav {
+                width: 34px;
+                height: 34px;
+            }
+
+            .project-photo-frame {
+                min-height: 58vh;
+            }
+
+            .project-photo-head {
+                padding-right: 48px;
+            }
+        }
+
         /* ================= EXPERIENCE GALLERY ================= */
 
         .experience-gallery {
@@ -2187,6 +2396,388 @@ MOBILE
             font-family: var(--font-mono);
             font-size: .72rem;
             color: var(--text-muted);
+        }
+
+        .tl-content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .tl-details {
+            min-width: 0;
+        }
+
+        .experience-open-target {
+            cursor: pointer;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .experience-open-target:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 4px;
+            border-radius: 6px;
+        }
+
+        .experience-open-hint {
+            margin-top: 5px;
+            font: 500 .64rem var(--font-mono);
+            color: var(--cyan);
+            opacity: .76;
+            letter-spacing: .03em;
+            transition: opacity .2s ease, transform .2s ease;
+        }
+
+        .experience-open-target:hover .experience-open-hint {
+            opacity: 1;
+            transform: translateX(2px);
+        }
+
+        .experience-gallery {
+            margin: 8px 0 0;
+        }
+
+        .experience-gallery-frame {
+            min-height: 220px;
+            height: 250px;
+            cursor: pointer;
+        }
+
+        .experience-gallery-frame img {
+            width: 100%;
+            height: 100%;
+            max-height: none;
+            object-fit: contain;
+            cursor: pointer;
+        }
+
+        .experience-gallery-placeholder {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font: 500 .68rem/1.6 var(--font-mono);
+        }
+
+        .experience-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 160;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(24, 20, 16, .82);
+            backdrop-filter: blur(8px);
+        }
+
+        .experience-lightbox.open {
+            display: flex;
+        }
+
+        .experience-lightbox-dialog {
+            position: relative;
+            width: min(1240px, 100%);
+            max-height: 94vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 18px;
+            border: 1px solid rgba(47, 127, 120, .18);
+            border-radius: 24px;
+            background: var(--surface-800);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .28);
+            animation: experienceEvidenceIn .28s ease both;
+            scrollbar-width: thin;
+        }
+
+        @keyframes experienceEvidenceIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .experience-lightbox-close {
+            position: sticky;
+            display: block;
+            margin-left: auto;
+            top: 0;
+            z-index: 20;
+            width: 42px;
+            height: 42px;
+            margin-bottom: -42px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            background: rgba(248, 243, 234, .96);
+            color: var(--text-primary);
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(50, 40, 25, .14);
+            transition: transform .2s ease, border-color .2s ease, background .2s ease, color .2s ease;
+        }
+
+        .experience-lightbox-close:hover {
+            transform: rotate(90deg);
+            border-color: var(--cyan);
+            background: var(--surface-700);
+            color: var(--cyan);
+        }
+
+        .experience-lightbox-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 330px;
+            gap: 18px;
+            align-items: stretch;
+            padding-top: 2px;
+        }
+
+        .experience-lightbox-image-wrap {
+            position: relative;
+            min-height: min(70vh, 650px);
+            max-height: 78vh;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-950);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .experience-lightbox-image-wrap img {
+            width: 100%;
+            height: 100%;
+            max-height: 78vh;
+            object-fit: contain;
+            opacity: 0;
+            transform: scale(.985);
+            transition: opacity .22s ease, transform .28s ease;
+        }
+
+        .experience-lightbox-image-wrap img.loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .experience-lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 8;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(47, 127, 120, .32);
+            border-radius: 50%;
+            background: rgba(248, 243, 234, .94);
+            color: var(--text-primary);
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(50, 40, 25, .16);
+            transition: transform .2s ease, border-color .2s ease, color .2s ease, background .2s ease;
+        }
+
+        .experience-lightbox-nav[data-side="prev"] {
+            left: 12px;
+        }
+
+        .experience-lightbox-nav[data-side="next"] {
+            right: 12px;
+        }
+
+        .experience-lightbox-nav:hover:not(:disabled) {
+            transform: translateY(-50%) scale(1.05);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: var(--surface-800);
+        }
+
+        .experience-lightbox-nav:disabled {
+            opacity: .38;
+            cursor: default;
+        }
+
+        .experience-lightbox-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            max-height: 78vh;
+            padding: 22px 20px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: rgba(237, 226, 209, .46);
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .experience-lightbox-eyebrow {
+            font: 500 .66rem var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            color: var(--cyan);
+        }
+
+        .experience-lightbox-info h3 {
+            margin-top: 7px;
+            font: 700 clamp(1.25rem, 2.1vw, 1.7rem) var(--font-display);
+            line-height: 1.15;
+            overflow-wrap: anywhere;
+        }
+
+        .experience-lightbox-company {
+            margin-top: 5px;
+            color: var(--text-muted);
+            font: 500 .76rem/1.5 var(--font-mono);
+            overflow-wrap: anywhere;
+        }
+
+        .experience-lightbox-detail {
+            margin-top: 18px;
+            color: var(--text-secondary);
+            font-size: .9rem;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .experience-lightbox-bullets {
+            margin: 14px 0 0;
+            padding-left: 18px;
+            color: var(--text-secondary);
+            font-size: .82rem;
+            line-height: 1.55;
+        }
+
+        .experience-lightbox-bullets li {
+            overflow-wrap: anywhere;
+        }
+
+        .experience-lightbox-bullets li+li {
+            margin-top: 7px;
+        }
+
+        .experience-lightbox-evidence {
+            margin-top: auto;
+            padding-top: 18px;
+        }
+
+        .experience-lightbox-evidence-label {
+            margin-bottom: 8px;
+            font: 500 .64rem var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--cyan);
+        }
+
+        .experience-lightbox-evidence-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .experience-lightbox-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            font: 500 .72rem var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .experience-lightbox-thumbs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-top: 12px;
+            padding-bottom: 2px;
+        }
+
+        .experience-lightbox-thumb {
+            width: 72px;
+            height: 54px;
+            flex: 0 0 auto;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-950);
+            cursor: pointer;
+            transition: transform .2s ease, border-color .2s ease;
+        }
+
+        .experience-lightbox-thumb:hover {
+            transform: translateY(-2px);
+        }
+
+        .experience-lightbox-thumb.active {
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 2px rgba(47, 127, 120, .10);
+        }
+
+        .experience-lightbox-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 900px) {
+            .tl-content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .experience-gallery-frame {
+                height: 300px;
+            }
+
+            .experience-lightbox-main {
+                grid-template-columns: 1fr;
+            }
+
+            .experience-lightbox-info {
+                max-height: none;
+            }
+
+            .experience-lightbox-image-wrap {
+                min-height: 52vh;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .experience-lightbox {
+                padding: 10px;
+            }
+
+            .experience-lightbox-dialog {
+                padding: 10px;
+                border-radius: 18px;
+            }
+
+            .experience-lightbox-main {
+                gap: 10px;
+            }
+
+            .experience-lightbox-nav {
+                width: 36px;
+                height: 36px;
+            }
+
+            .experience-lightbox-nav[data-side="prev"] {
+                left: 8px;
+            }
+
+            .experience-lightbox-nav[data-side="next"] {
+                right: 8px;
+            }
+
+            .experience-lightbox-image-wrap {
+                min-height: 52vh;
+            }
+
+            .experience-lightbox-info {
+                padding: 18px 16px;
+            }
         }
 
         /* ================= EXPERIENCE ================= */
@@ -4043,6 +4634,64 @@ MOBILE
         </div>
     </footer>
 
+    <!-- ============ EXPERIENCE LIGHTBOX ============ -->
+    <div class="experience-lightbox" id="experienceLightbox" aria-hidden="true">
+        <div class="experience-lightbox-dialog" role="dialog" aria-modal="true"
+            aria-label="Experience evidence gallery">
+            <button class="experience-lightbox-close" id="experienceLightboxClose" type="button"
+                aria-label="Close gallery">✕</button>
+            <div class="experience-lightbox-main">
+                <div class="experience-lightbox-image-wrap">
+                    <button class="experience-lightbox-nav" id="experienceLightboxPrev" data-side="prev" type="button"
+                        aria-label="Previous image">←</button>
+                    <img id="experienceLightboxImage" src="" alt="Experience evidence">
+                    <button class="experience-lightbox-nav" id="experienceLightboxNext" data-side="next" type="button"
+                        aria-label="Next image">→</button>
+                </div>
+                <div class="experience-lightbox-info">
+                    <div class="experience-lightbox-eyebrow">Experience evidence</div>
+                    <h3 id="experienceLightboxRole">Internship role</h3>
+                    <div class="experience-lightbox-company" id="experienceLightboxCompany">Company · Date · Location
+                    </div>
+                    <p class="experience-lightbox-detail" id="experienceLightboxDetail"></p>
+                    <ul class="experience-lightbox-bullets" id="experienceLightboxBullets"></ul>
+                    <div class="experience-lightbox-evidence" id="experienceLightboxEvidence"></div>
+                </div>
+            </div>
+            <div class="experience-lightbox-meta"><span id="experienceLightboxTitle">Experience evidence</span><span
+                    id="experienceLightboxCounter">0 / 0</span></div>
+            <div class="experience-lightbox-thumbs" id="experienceLightboxThumbs"></div>
+        </div>
+    </div>
+
+    <!-- ============ PROJECT PHOTO LIGHTBOX ============ -->
+    <div class="project-photo-lightbox" id="projectPhotoLightbox" aria-hidden="true">
+        <div class="project-photo-dialog" role="dialog" aria-modal="true" aria-label="Project photo viewer">
+            <button class="project-photo-close" id="projectPhotoClose" type="button"
+                aria-label="Close photo viewer">✕</button>
+            <div class="project-photo-head">
+                <div>
+                    <div class="project-photo-kicker" id="projectPhotoKicker">Project gallery</div>
+                    <div class="project-photo-title" id="projectPhotoTitle">Project photos</div>
+                </div>
+            </div>
+            <div class="project-photo-stage">
+                <button class="project-photo-nav" id="projectPhotoPrev" type="button"
+                    aria-label="Previous project photo">←</button>
+                <div class="project-photo-frame">
+                    <img id="projectPhotoImage" src="" alt="Project photo">
+                </div>
+                <button class="project-photo-nav" id="projectPhotoNext" type="button"
+                    aria-label="Next project photo">→</button>
+            </div>
+            <div class="project-photo-footer">
+                <div class="project-photo-caption" id="projectPhotoCaption">Project evidence</div>
+                <div class="project-photo-counter" id="projectPhotoCounter">0 / 0</div>
+            </div>
+            <div class="project-photo-thumbs" id="projectPhotoThumbs"></div>
+        </div>
+    </div>
+
     <!-- ============ PROJECT MODAL ============ -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal" id="modalContent" role="dialog" aria-modal="true"></div>
@@ -4058,9 +4707,16 @@ MOBILE
                 `./assets/projects/${slug}/${String(i + 1).padStart(2, '0')}.${ext}`
         );
 
+        const experienceImages = (slug, count = 6, ext = 'png') => Array.from(
+            { length: count },
+            (_, i) =>
+                `./assets/experience/${slug}/${String(i + 1).padStart(2, '0')}.${ext}`
+        );
+
         const PROJECTS = [
             {
                 slug: 'breast-cancer-classification', domain: 'ai', category: 'AI / Healthcare ML', status: 'Completed',
+                github: 'https://github.com/suyashshukla911-ops/breast-cancer-classification',
                 title: 'Breast Cancer Classification', desc: 'A support vector machine model classifying tumor samples from diagnostic features.',
                 tags: ['Python', 'SVM', 'Scikit-learn', 'Feature Engineering'],
                 overview: 'A supervised classification project distinguishing benign from malignant tumor samples using a support vector machine, built during the Elevate Labs AI/ML internship.',
@@ -4074,6 +4730,7 @@ MOBILE
             },
             {
                 slug: 'churn-prediction', domain: 'ai', category: 'AI / Classification', status: 'In progress',
+                github: 'https://github.com/suyashshukla911-ops/churn-prediction',
                 title: 'Churn Prediction', desc: 'A classification model predicting customer churn from account and usage data.',
                 tags: ['Python', 'Classification', 'Scikit-learn'],
                 overview: 'A binary classification project predicting which customers are likely to churn, using account and usage-pattern features.',
@@ -4087,6 +4744,7 @@ MOBILE
             },
             {
                 slug: 'fake-news-detection', domain: 'ai', category: 'AI / NLP', status: 'Completed',
+                github: 'https://github.com/suyashshukla911-ops/fake-news-detection',
                 title: 'Fake News Detection', desc: 'An NLP classifier distinguishing real from fake news using TF-IDF and logistic regression.',
                 tags: ['Python', 'NLP', 'TF-IDF', 'Logistic Regression', 'Scikit-learn'],
                 overview: 'A text classification system that flags likely fake news articles, built during my AI &amp; Machine Learning internship at Elevate Labs.',
@@ -4100,6 +4758,7 @@ MOBILE
             },
             {
                 slug: 'hero-predictive-maintenance',
+                github: 'https://github.com/suyashshukla911-ops/hero-predictive-maintenance',
                 domain: 'ai',
                 category: 'AI / Predictive Maintenance',
                 status: 'Completed',
@@ -4117,6 +4776,7 @@ MOBILE
             },
             {
                 slug: 'stock-predictor', domain: 'ai', category: 'AI / Data', status: 'Completed',
+                github: 'https://github.com/suyashshukla911-ops/stock-predictor',
                 title: 'Stock Predictor', desc: 'A Python stock-analysis and prediction project combining market data with sentiment inputs.',
                 tags: ['Python', 'Machine Learning', 'Market Data', 'Sentiment'],
                 overview: 'A stock-analysis project built in Python to collect market data, generate prediction-oriented features and explore sentiment as an additional signal.',
@@ -4130,6 +4790,7 @@ MOBILE
             },
             {
                 slug: 'smart-photo-frame', domain: 'automation', category: 'IoT / Embedded', status: 'Completed',
+                github: 'https://github.com/suyashshukla911-ops/smart-photo-frame',
                 title: 'Smart Digital Photo Frame', desc: 'A connected photo frame with a web dashboard, built around an ESP32.',
                 tags: ['ESP32', 'TFT Display', 'SD Card', 'PIR Sensor', 'MAX98357A'],
                 overview: 'A self-contained digital photo frame that displays images from local storage and can be managed remotely, built to explore embedded UI, sensor input and audio output on a single microcontroller.',
@@ -4143,6 +4804,7 @@ MOBILE
             },
             {
                 slug: 'cybersecurity-lab-work', domain: 'cyber', category: 'Cybersecurity', status: 'Completed',
+                github: 'https://github.com/suyashshukla911-ops/cybersecurity-lab-work',
                 title: 'Network Security &amp; Vulnerability Assessment', desc: 'Hands-on network security and web-app vulnerability analysis during a cybersecurity internship.',
                 tags: ['Wireshark', 'OWASP ZAP', 'WebGoat', 'Network Security'],
                 overview: 'Practical network security and web application security work completed during my internship at Redynox, covering traffic analysis and vulnerability assessment.',
@@ -4156,6 +4818,7 @@ MOBILE
             },
             {
                 slug: 'college-web-scraping', domain: 'software', category: 'Software / Web', status: 'Completed',
+                github: 'https://github.com/suyashshukla911-ops/college-web-scraping',
                 title: 'College Web Scraping Project', desc: 'A Python web-scraping project for collecting, cleaning and organizing college website data.',
                 tags: ['Python', 'BeautifulSoup', 'Web Scraping', 'Data Cleaning'],
                 overview: 'A web-scraping project focused on collecting structured information from a college website and turning it into cleaner, reusable data.',
@@ -4169,6 +4832,7 @@ MOBILE
             },
             {
                 slug: 'home-automation', domain: 'automation', category: 'IoT / Automation', status: 'Completed',
+                github: 'https://github.com/suyashshukla911-ops/home-automation',
                 title: 'Home Automation Prototype', desc: 'A Tinkercad-based home automation prototype using sensors and control logic.',
                 tags: ['Tinkercad', 'IoT', 'Sensors', 'Automation'],
                 overview: 'A simulation-based home automation build exploring sensor inputs, control logic and automated device switching.',
@@ -4182,6 +4846,7 @@ MOBILE
             },
             {
                 slug: 'ai-sales-forecasting', domain: 'ai', category: 'AI / Data', status: 'In progress',
+                github: 'https://github.com/suyashshukla911-ops/ai-sales-forecasting',
                 title: 'AI Sales Forecasting', desc: 'A forecasting project applying machine learning to historical sales data.',
                 tags: ['Python', 'Pandas', 'Forecasting', 'ML'],
                 overview: 'A project exploring time-series and regression-based approaches to forecasting sales trends from historical data.',
@@ -4195,6 +4860,7 @@ MOBILE
             },
             {
                 slug: 'ai-study-planner', domain: 'software', category: 'Software / AI', status: 'In progress',
+                github: 'https://github.com/suyashshukla911-ops/ai-study-planner',
                 title: 'AI Study Planner', desc: 'A planning tool that generates personalized study schedules.',
                 tags: ['Python', 'Scheduling Logic', 'Software Design'],
                 overview: 'A tool that takes a learner\'s goals and available time and produces a structured study schedule.',
@@ -4208,6 +4874,7 @@ MOBILE
             },
             {
                 slug: 'chatbot', domain: 'software', category: 'Software / AI', status: 'Experimental',
+                github: 'https://github.com/suyashshukla911-ops/chatbot',
                 title: 'Conversational Chatbot', desc: 'A rule- and retrieval-based chatbot project exploring conversational interfaces.',
                 tags: ['Python', 'NLP', 'Conversational Design'],
                 overview: 'A chatbot project exploring how conversational interfaces are structured — intents, responses and context handling.',
@@ -4221,6 +4888,7 @@ MOBILE
             },
             {
                 slug: 'autonomous-hackathon',
+                github: 'https://github.com/suyashshukla911-ops/autonomous-hackathon',
                 domain: 'ai',
                 category: 'AI / Agentic AI',
                 status: 'Completed',
@@ -4243,27 +4911,28 @@ MOBILE
         const EXPERIENCE = [
             {
                 company: 'Thaejus Aerodyne', role: 'Artificial Intelligence Intern', date: 'Aug 2026 – Present', loc: 'Bengaluru', current: true,
-                detail: 'Ongoing AI internship focused on applying machine learning to real engineering problems.'
-            },
-            {
-                company: 'IEEE Robotics and Automation Society', role: 'Head of Logistics', date: 'Jul 2026 – Present', loc: 'Bengaluru', current: true,
-                detail: 'Leading logistics for the college robotics and automation society, coordinating events and resources for robotics/embedded-systems projects.'
+                detail: 'Ongoing AI internship focused on applying machine learning to real engineering problems.',
+                images: experienceImages('thaejus-aerodyne'),
             },
             {
                 company: 'Codec Technologies India', role: 'Project Intern', date: 'Jun 2026 – Sep 2026', loc: 'Bangalore Urban',
-                detail: 'Project-based internship contributing to technical deliverables.'
+                detail: 'Project-based internship contributing to technical deliverables.',
+                images: experienceImages('codec-technologies-india'),
             },
             {
                 company: 'InAmigos Foundation (IAF)', role: 'Data Analyst', date: 'Jun 2026 – Jul 2026', loc: 'India',
-                detail: 'Data analysis work supporting the foundation\'s initiatives.'
+                detail: 'Data analysis work supporting the foundation\'s initiatives.',
+                images: experienceImages('inamigos-foundation'),
             },
             {
                 company: 'ApexPlanet Software Pvt Ltd', role: 'Intern', date: 'Mar 2026 – May 2026', loc: 'Bengaluru',
-                detail: 'Software internship contributing to applied development work.'
+                detail: 'Software internship contributing to applied development work.',
+                images: experienceImages('apexplanet-software'),
             },
             {
                 company: 'India Space Week', role: 'Project Intern', date: 'Feb 2026 – Mar 2026', loc: 'Bangalore Urban',
-                detail: 'Project internship contributing to India Space Week initiatives.'
+                detail: 'Project internship contributing to India Space Week initiatives.',
+                images: experienceImages('india-space-week'),
             },
             {
                 company: 'Elevate Labs', role: 'AI &amp; Machine Learning Intern', date: 'Feb 2026 – Mar 2026', loc: 'Bangalore Urban',
@@ -4271,25 +4940,30 @@ MOBILE
                 bullets: ['Implemented Linear/Logistic Regression, Decision Trees, Random Forest, KNN, SVM and K-Means Clustering',
                     'Delivered Fake News Detection (NLP, ~98% accuracy), Breast Cancer Classification (SVM) and Customer Segmentation (K-Means)',
                     'Worked across data cleaning, feature engineering, model evaluation and result visualization using Python, Pandas, NumPy, Scikit-learn, Matplotlib and NLTK',
-                    'Documented projects and published GitHub repositories for each']
+                    'Documented projects and published GitHub repositories for each'],
+                images: experienceImages('elevate-labs'),
             },
             {
                 company: 'YHills', role: 'Internet of Things Intern', date: 'Jan 2026 – Mar 2026', loc: 'Bengaluru',
                 detail: 'Completed a 2-month Industrial IoT traineeship covering sensors, data acquisition and system integration.',
-                bullets: ['Worked on two live IoT projects, one minor and one major', 'Gained hands-on exposure to IoT architecture, sensors and data acquisition', 'Developed hardware-software integration and real-time monitoring skills']
+                bullets: ['Worked on two live IoT projects, one minor and one major', 'Gained hands-on exposure to IoT architecture, sensors and data acquisition', 'Developed hardware-software integration and real-time monitoring skills'],
+                images: experienceImages('yhills'),
             },
             {
                 company: 'Bharat Space Education Research Centre', role: 'Project Intern', date: 'Dec 2025 – Jan 2026', loc: 'Bengaluru',
-                detail: 'Project internship contributing to space-education research initiatives.'
+                detail: 'Project internship contributing to space-education research initiatives.',
+                images: experienceImages('bharat-space-education-research-centre'),
             },
             {
                 company: 'Future Interns', role: 'Machine Learning Intern', date: 'Nov 2025 – Dec 2025', loc: 'Bengaluru',
-                detail: 'Hands-on ML projects developing skills in algorithms, data analysis and model building.'
+                detail: 'Hands-on ML projects developing skills in algorithms, data analysis and model building.',
+                images: experienceImages('future-interns'),
             },
             {
                 company: 'Redynox', role: 'Cybersecurity Intern', date: 'Oct 2025 – Nov 2025', loc: 'Bengaluru',
                 detail: 'Explored network security fundamentals and conducted vulnerability analysis on intentionally vulnerable applications.',
-                bullets: ['Analyzed network traffic with Wireshark and studied firewalls, encryption and threat detection', 'Scanned WebGoat with OWASP ZAP, identifying SQL Injection, XSS and CSRF vulnerabilities', 'Implemented basic security configurations for small and large-scale networks']
+                bullets: ['Analyzed network traffic with Wireshark and studied firewalls, encryption and threat detection', 'Scanned WebGoat with OWASP ZAP, identifying SQL Injection, XSS and CSRF vulnerabilities', 'Implemented basic security configurations for small and large-scale networks'],
+                images: experienceImages('redynox'),
             },
             {
                 company: 'Lohia Corp Limited',
@@ -4486,256 +5160,6 @@ MOBILE
 
         document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
         /* ========================================================
-           PREMIUM CINEMATIC SECTION TRANSITION
-           Transparent → Translucent → Opaque
-           Smooth + Reversible
-           ======================================================== */
-
-        const animatedSections = Array.from(
-            document.querySelectorAll('section:not(.hero)')
-        );
-
-        const reducedMotion = window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches;
-
-        if (!reducedMotion && animatedSections.length) {
-
-            document.documentElement.classList.add('section-motion-ready');
-
-            const sectionStates = new Map();
-
-            animatedSections.forEach(section => {
-                sectionStates.set(section, {
-                    current: 0,
-                    target: 0
-                });
-            });
-
-            let sectionFrame = null;
-            let lastTime = performance.now();
-
-            function clamp(value, min, max) {
-                return Math.max(min, Math.min(max, value));
-            }
-
-            function easeInOut(value) {
-                return value * value * (3 - 2 * value);
-            }
-
-            /*
-             * Calculate how close each section is to the
-             * visual centre of the screen.
-             *
-             * This is intentionally based on the section's
-             * centre rather than only its top edge, so the
-             * effect reverses naturally while scrolling up.
-             */
-            function updateSectionTargets() {
-
-                const viewportHeight = window.innerHeight;
-                const viewportCenter = viewportHeight * 0.50;
-
-                /*
-                 * A wider range makes the transition visible
-                 * before and after the section reaches centre.
-                 */
-                const animationRange = viewportHeight * 0.78;
-
-                animatedSections.forEach(section => {
-
-                    const rect = section.getBoundingClientRect();
-                    const sectionCenter =
-                        rect.top + (rect.height * 0.50);
-
-                    const distance =
-                        Math.abs(sectionCenter - viewportCenter);
-
-                    let progress =
-                        1 - (distance / animationRange);
-
-                    progress = clamp(progress, 0, 1);
-                    progress = easeInOut(progress);
-
-                    const state = sectionStates.get(section);
-
-                    state.target = progress;
-                });
-            }
-
-            /*
-             * Apply one smooth frame.
-             *
-             * Frame-rate independent interpolation keeps the
-             * transition fluid on both high and low refresh
-             * rate displays.
-             */
-            function animateSections(now) {
-
-                const delta = Math.min(now - lastTime, 32);
-                lastTime = now;
-
-                const smoothing =
-                    1 - Math.pow(0.0008, delta / 16.67);
-
-                let stillMoving = false;
-
-                animatedSections.forEach(section => {
-
-                    const state = sectionStates.get(section);
-
-                    state.current +=
-                        (state.target - state.current) * smoothing;
-
-                    if (
-                        Math.abs(
-                            state.target - state.current
-                        ) > 0.0005
-                    ) {
-                        stillMoving = true;
-                    }
-
-                    const progress = state.current;
-
-                    /*
-                     * Never make a section completely disappear.
-                     *
-                     * 0.22 = distant / translucent
-                     * 0.55 = entering
-                     * 1.00 = focused / opaque
-                     */
-                    const opacity =
-                        0.22 + (progress * 0.78);
-
-                    /*
-                     * Lift the section into position as it
-                     * approaches the centre.
-                     */
-                    const y =
-                        (1 - progress) * 58;
-
-                    /*
-                     * Cinematic 3D tilt.
-                     *
-                     * The direction changes according to whether
-                     * the section is above or below the viewport
-                     * centre, making scroll-up and scroll-down
-                     * feel like opposite movements.
-                     */
-                    const rect =
-                        section.getBoundingClientRect();
-
-                    const viewportCenter =
-                        window.innerHeight * 0.50;
-
-                    const sectionCenter =
-                        rect.top + (rect.height * 0.50);
-
-                    const direction =
-                        sectionCenter >= viewportCenter ? 1 : -1;
-
-                    const rotateX =
-                        direction * (1 - progress) * 5;
-
-                    const rotateY =
-                        direction * (1 - progress) * -1.8;
-
-                    /*
-                     * Subtle depth scaling.
-                     */
-                    const scale =
-                        0.965 + (progress * 0.035);
-
-                    /*
-                     * Slight blur while distant, sharp when focused.
-                     */
-                    const blur =
-                        (1 - progress) * 4;
-
-                    section.style.setProperty(
-                        '--section-opacity',
-                        opacity.toFixed(4)
-                    );
-
-                    section.style.setProperty(
-                        '--section-y',
-                        `${y.toFixed(2)}px`
-                    );
-
-                    section.style.setProperty(
-                        '--section-rx',
-                        `${rotateX.toFixed(2)}deg`
-                    );
-
-                    section.style.setProperty(
-                        '--section-ry',
-                        `${rotateY.toFixed(2)}deg`
-                    );
-
-                    section.style.setProperty(
-                        '--section-scale',
-                        scale.toFixed(4)
-                    );
-
-                    section.style.setProperty(
-                        '--section-blur',
-                        `${blur.toFixed(2)}px`
-                    );
-                });
-
-                if (stillMoving || sectionFrame !== null) {
-                    sectionFrame = requestAnimationFrame(animateSections);
-                }
-            }
-
-            function requestSectionAnimation() {
-
-                updateSectionTargets();
-
-                if (sectionFrame === null) {
-                    lastTime = performance.now();
-                    sectionFrame =
-                        requestAnimationFrame(animateSections);
-                }
-            }
-
-            /*
-             * Scroll down and scroll up use the exact same
-             * calculation, so the animation is fully reversible.
-             */
-            window.addEventListener(
-                'scroll',
-                requestSectionAnimation,
-                { passive: true }
-            );
-
-            window.addEventListener(
-                'resize',
-                requestSectionAnimation
-            );
-
-            /*
-             * Initial calculation.
-             */
-            updateSectionTargets();
-
-            /*
-             * Start every section from its calculated position
-             * so the page does not flash or jump on load.
-             */
-            animatedSections.forEach(section => {
-
-                const state =
-                    sectionStates.get(section);
-
-                state.current = state.target;
-            });
-
-            sectionFrame =
-                requestAnimationFrame(animateSections);
-        }
-
-        /* ========================================================
            RENDER: DOMAIN COUNTS
            ======================================================== */
         Object.keys(DOMAIN_LABELS).forEach(d => {
@@ -4747,6 +5171,81 @@ MOBILE
            RENDER: PROJECT GRID + FILTERS
            ======================================================== */
         const projectGrid = document.getElementById('projectGrid');
+
+        /* ========================================================
+           PROJECT PHOTO LIGHTBOX
+           ======================================================== */
+        const projectPhotoLightbox = document.getElementById('projectPhotoLightbox');
+        const projectPhotoClose = document.getElementById('projectPhotoClose');
+        const projectPhotoPrev = document.getElementById('projectPhotoPrev');
+        const projectPhotoNext = document.getElementById('projectPhotoNext');
+        const projectPhotoImage = document.getElementById('projectPhotoImage');
+        const projectPhotoKicker = document.getElementById('projectPhotoKicker');
+        const projectPhotoTitle = document.getElementById('projectPhotoTitle');
+        const projectPhotoCaption = document.getElementById('projectPhotoCaption');
+        const projectPhotoCounter = document.getElementById('projectPhotoCounter');
+        const projectPhotoThumbs = document.getElementById('projectPhotoThumbs');
+
+        let currentProjectImages = [];
+        let currentProjectImage = 0;
+        let currentProject = null;
+
+        function showProjectPhoto(index) {
+            if (!currentProjectImages.length) return;
+            currentProjectImage = (index + currentProjectImages.length) % currentProjectImages.length;
+            const current = currentProjectImages[currentProjectImage];
+            projectPhotoImage.classList.remove('loaded');
+            projectPhotoImage.src = current.src;
+            projectPhotoImage.alt = current.alt;
+            projectPhotoImage.onload = () => projectPhotoImage.classList.add('loaded');
+            projectPhotoCounter.textContent = `${currentProjectImage + 1} / ${currentProjectImages.length}`;
+            projectPhotoPrev.disabled = currentProjectImages.length < 2;
+            projectPhotoNext.disabled = currentProjectImages.length < 2;
+            projectPhotoThumbs.querySelectorAll('.project-photo-thumb').forEach((thumb, i) => thumb.classList.toggle('active', i === currentProjectImage));
+        }
+
+        function openProjectPhotoLightbox(images, index, p) {
+            if (!images || !images.length) return;
+            currentProjectImages = images;
+            currentProject = p;
+            projectPhotoKicker.textContent = `${p.category} · ${DOMAIN_LABELS[p.domain] || 'Project'}`;
+            projectPhotoTitle.textContent = p.title;
+            projectPhotoCaption.textContent = p.overview || p.desc || 'Project evidence';
+            projectPhotoThumbs.innerHTML = images.map((image, i) => `
+                <button class="project-photo-thumb" type="button" aria-label="Open project photo ${i + 1}">
+                    <img src="${image.src}" alt="${image.alt} thumbnail" loading="lazy">
+                </button>
+            `).join('');
+            projectPhotoThumbs.querySelectorAll('.project-photo-thumb').forEach((thumb, i) => thumb.addEventListener('click', () => showProjectPhoto(i)));
+            showProjectPhoto(index);
+            projectPhotoLightbox.classList.add('open');
+            projectPhotoLightbox.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('lightbox-open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProjectPhotoLightbox() {
+            projectPhotoLightbox.classList.remove('open');
+            projectPhotoLightbox.setAttribute('aria-hidden', 'true');
+            projectPhotoImage.classList.remove('loaded');
+            document.body.classList.remove('lightbox-open');
+            if (document.getElementById('modalOverlay')?.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        projectPhotoClose.addEventListener('click', closeProjectPhotoLightbox);
+        projectPhotoPrev.addEventListener('click', () => showProjectPhoto(currentProjectImage - 1));
+        projectPhotoNext.addEventListener('click', () => showProjectPhoto(currentProjectImage + 1));
+        projectPhotoLightbox.addEventListener('click', event => { if (event.target === projectPhotoLightbox) closeProjectPhotoLightbox(); });
+        document.addEventListener('keydown', event => {
+            if (!projectPhotoLightbox.classList.contains('open')) return;
+            if (event.key === 'Escape') closeProjectPhotoLightbox();
+            if (event.key === 'ArrowLeft') showProjectPhoto(currentProjectImage - 1);
+            if (event.key === 'ArrowRight') showProjectPhoto(currentProjectImage + 1);
+        });
 
         function galleryMarkup(p, prefix = 'project') {
             return `
@@ -4845,6 +5344,13 @@ MOBILE
                 update();
             });
 
+            main.addEventListener('click', e => {
+                const image = e.target.closest('img[data-gallery-image]');
+                if (!image || !loaded.length) return;
+                e.stopPropagation();
+                openProjectPhotoLightbox(loaded.map((src, i) => ({ src, alt: `${p.title} — image ${i + 1}` })), index, p);
+            });
+
             p.images.forEach(src => {
                 const tester = new Image();
                 tester.onload = () => addImage(src);
@@ -4903,6 +5409,11 @@ MOBILE
                     const fallback = new Image();
                     fallback.src = projectImage;
                     fallback.alt = p.title;
+                    fallback.style.cursor = 'zoom-in';
+                    fallback.addEventListener('click', e => {
+                        e.stopPropagation();
+                        openProjectPhotoLightbox([{ src: projectImage, alt: p.title }], 0, p);
+                    });
                     fallback.addEventListener('load', () => {
                         const main = card.querySelector('[data-gallery-main]');
                         const placeholder = main.querySelector('[data-gallery-placeholder]');
@@ -4945,6 +5456,7 @@ MOBILE
         const modalOverlay = document.getElementById('modalOverlay');
         const modalContent = document.getElementById('modalContent');
         function openModal(p) {
+            if (projectPhotoLightbox.classList.contains('open')) closeProjectPhotoLightbox();
             modalContent.innerHTML = `
                 <button class="modal-close" id="modalCloseBtn" aria-label="Close">✕</button>
 
@@ -4962,8 +5474,8 @@ MOBILE
                 <div class="modal-section"><h5>Learnings</h5><p>${p.learnings}</p></div>
 
                 <div class="modal-actions">
-                    <a class="btn btn-ghost btn-sm" href="https://github.com/suyashshukla911-ops" target="_blank" rel="noopener">
-                        View GitHub profile ↗
+                    <a class="btn btn-ghost btn-sm" href="${p.github}" target="_blank" rel="noopener">
+                        View GitHub repository ↗
                     </a>
                 </div>
             `;
@@ -4977,7 +5489,7 @@ MOBILE
 
         function closeModal() {
             modalOverlay.classList.remove('open');
-            document.body.style.overflow = '';
+            if (!projectPhotoLightbox.classList.contains('open')) document.body.style.overflow = '';
         }
         modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
@@ -4986,175 +5498,174 @@ MOBILE
            RENDER: TIMELINE
            ======================================================== */
         const timelineList = document.getElementById('timelineList');
+
+        const experienceLightbox = document.getElementById('experienceLightbox');
+        const experienceLightboxClose = document.getElementById('experienceLightboxClose');
+        const experienceLightboxPrev = document.getElementById('experienceLightboxPrev');
+        const experienceLightboxNext = document.getElementById('experienceLightboxNext');
+        const experienceLightboxImage = document.getElementById('experienceLightboxImage');
+        const experienceLightboxTitle = document.getElementById('experienceLightboxTitle');
+        const experienceLightboxRole = document.getElementById('experienceLightboxRole');
+        const experienceLightboxCompany = document.getElementById('experienceLightboxCompany');
+        const experienceLightboxDetail = document.getElementById('experienceLightboxDetail');
+        const experienceLightboxBullets = document.getElementById('experienceLightboxBullets');
+        const experienceLightboxEvidence = document.getElementById('experienceLightboxEvidence');
+        const experienceLightboxCounter = document.getElementById('experienceLightboxCounter');
+        const experienceLightboxThumbs = document.getElementById('experienceLightboxThumbs');
+        let currentExperienceImages = [];
+        let currentExperienceImage = 0;
+
+        let currentExperienceEntry = null;
+
+        function showExperienceLightboxImage(index) {
+            if (!currentExperienceImages.length) return;
+            currentExperienceImage = (index + currentExperienceImages.length) % currentExperienceImages.length;
+            const current = currentExperienceImages[currentExperienceImage];
+            experienceLightboxImage.classList.remove('loaded');
+            experienceLightboxImage.src = current.src;
+            experienceLightboxImage.alt = current.alt;
+            experienceLightboxImage.onload = () => experienceLightboxImage.classList.add('loaded');
+            experienceLightboxCounter.textContent = `${currentExperienceImage + 1} / ${currentExperienceImages.length}`;
+            experienceLightboxPrev.disabled = currentExperienceImages.length < 2;
+            experienceLightboxNext.disabled = currentExperienceImages.length < 2;
+            experienceLightboxThumbs.querySelectorAll('.experience-lightbox-thumb').forEach((thumb, i) => thumb.classList.toggle('active', i === currentExperienceImage));
+        }
+
+        function openExperienceLightbox(images, index, entry) {
+            if (!images || !images.length) return;
+            currentExperienceImages = images;
+            currentExperienceEntry = entry;
+
+            experienceLightboxTitle.textContent = `${entry.company} — ${entry.role}`;
+            experienceLightboxRole.textContent = entry.role;
+            experienceLightboxCompany.textContent = `${entry.company} · ${entry.date} · ${entry.loc}`;
+            experienceLightboxDetail.textContent = entry.detail || '';
+            experienceLightboxBullets.innerHTML = entry.bullets?.length
+                ? entry.bullets.map(b => `<li>${b}</li>`).join('')
+                : '';
+            experienceLightboxEvidence.innerHTML = entry.evidence?.length
+                ? `<div class="experience-lightbox-evidence-label">Evidence &amp; documentation</div><div class="experience-lightbox-evidence-links">${entry.evidence.map(item => `<a class="btn btn-ghost btn-sm" href="${item.file}" target="_blank" rel="noopener">${item.label} ↗</a>`).join('')}</div>`
+                : '';
+
+            experienceLightboxThumbs.innerHTML = images.map((image, i) => `<button class="experience-lightbox-thumb" type="button" aria-label="Open image ${i + 1}"><img src="${image.src}" alt="${image.alt} thumbnail" loading="lazy"></button>`).join('');
+            experienceLightboxThumbs.querySelectorAll('.experience-lightbox-thumb').forEach((thumb, i) => thumb.addEventListener('click', () => showExperienceLightboxImage(i)));
+            showExperienceLightboxImage(index);
+            experienceLightbox.classList.add('open');
+            experienceLightbox.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('lightbox-open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeExperienceLightbox() {
+            experienceLightbox.classList.remove('open');
+            experienceLightbox.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('lightbox-open');
+            document.body.style.overflow = '';
+        }
+
+        experienceLightboxClose.addEventListener('click', closeExperienceLightbox);
+        experienceLightboxPrev.addEventListener('click', () => showExperienceLightboxImage(currentExperienceImage - 1));
+        experienceLightboxNext.addEventListener('click', () => showExperienceLightboxImage(currentExperienceImage + 1));
+        experienceLightbox.addEventListener('click', event => { if (event.target === experienceLightbox) closeExperienceLightbox(); });
+        document.addEventListener('keydown', event => {
+            if (!experienceLightbox.classList.contains('open')) return;
+            if (event.key === 'Escape') closeExperienceLightbox();
+            if (event.key === 'ArrowLeft') showExperienceLightboxImage(currentExperienceImage - 1);
+            if (event.key === 'ArrowRight') showExperienceLightboxImage(currentExperienceImage + 1);
+        });
+
         EXPERIENCE.forEach((e, i) => {
             const item = document.createElement('div');
             item.className = 'tl-item' + (e.current ? ' current' : '');
             item.innerHTML = `
     <div class="tl-dot"></div>
-
-    <div class="tl-date">
-        ${e.date} · ${e.loc}
-    </div>
-
-    <div class="tl-head" data-toggle>
-        <div>
-            <h4>${e.role}</h4>
-            <div class="role-loc">${e.company}</div>
-        </div>
-
-        <div class="tl-toggle">
-            ${e.bullets ? 'Details +' : ''}
-        </div>
-    </div>
-
-    <div class="tl-body">
-        <div class="tl-body-inner">
-
-            <p>${e.detail}</p>
-
-            ${e.bullets ? `
-                <ul>
-                    ${e.bullets
-                        .map(b => `<li>${b}</li>`)
-                        .join('')}
-                </ul>
-            ` : ''}
-
-            ${e.images && e.images.length ? `
-                <div class="experience-gallery">
-
-                    <div class="experience-gallery-frame">
-
-                        <img
-                            src="${e.images[0]}"
-                            alt="${e.company} experience photo"
-                            data-experience-gallery-image>
-
-                    </div>
-
-                    <div class="experience-gallery-controls">
-
-                        <button
-                            class="experience-gallery-btn"
-                            type="button"
-                            data-gallery-prev
-                            aria-label="Previous photo">
-                            ←
-                        </button>
-
-                        <span
-                            class="experience-gallery-counter"
-                            data-gallery-counter>
-                            1 / ${e.images.length}
-                        </span>
-
-                        <button
-                            class="experience-gallery-btn"
-                            type="button"
-                            data-gallery-next
-                            aria-label="Next photo">
-                            →
-                        </button>
-
-                    </div>
-
+    <div class="tl-date">${e.date} · ${e.loc}</div>
+    <div class="tl-content-grid">
+        <div class="tl-details">
+            <div class="tl-head" data-toggle>
+                <div class="experience-open-target" role="button" tabindex="0" aria-label="Open ${e.role} evidence">
+                    <h4>${e.role}</h4><div class="role-loc">${e.company}</div>
+                    <div class="experience-open-hint">Open experience ↗</div>
                 </div>
-            ` : ''}
-
-            ${e.evidence ? `
-                <div class="experience-evidence">
-
-                    <div class="experience-evidence-title">
-                        Evidence &amp; Documentation
-                    </div>
-
-                    <div class="experience-evidence-actions">
-
-                        ${e.evidence.map(item => `
-                            <a
-                                class="btn btn-ghost btn-sm"
-                                href="${item.file}"
-                                target="_blank"
-                                rel="noopener">
-                                ${item.label} ↗
-                            </a>
-                        `).join('')}
-
-                    </div>
-
+            </div>
+            <div class="tl-body">
+                <div class="tl-body-inner">
+                    <p>${e.detail}</p>
+                    ${e.bullets ? `<ul>${e.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
+                    ${e.evidence ? `<div class="experience-evidence"><div class="experience-evidence-title">Evidence &amp; Documentation</div><div class="experience-evidence-actions">${e.evidence.map(item => `<a class="btn btn-ghost btn-sm" href="${item.file}" target="_blank" rel="noopener">${item.label} ↗</a>`).join('')}</div></div>` : ''}
                 </div>
-            ` : ''}
-
+            </div>
         </div>
+        ${e.images && e.images.length ? `<div class="experience-gallery" data-experience-gallery><div class="experience-gallery-frame" data-experience-gallery-frame><div class="experience-gallery-placeholder" data-experience-gallery-placeholder>Evidence photos · Add images to the experience folder (01.png, 02.png, 03.png …)</div></div><div class="experience-gallery-controls"><button class="experience-gallery-btn" type="button" data-gallery-prev aria-label="Previous photo">←</button><span class="experience-gallery-counter" data-gallery-counter>0 / 0</span><button class="experience-gallery-btn" type="button" data-gallery-next aria-label="Next photo">→</button></div></div>` : ''}
     </div>
 `;
-            if (e.bullets) {
-                item.querySelector('[data-toggle]').addEventListener('click', () => {
-                    const wasOpen = item.classList.contains('open');
-                    item.classList.toggle('open');
-                    item.querySelector('.tl-toggle').textContent = wasOpen ? 'Details +' : 'Hide −';
-                });
-            }
-            /* ================= EXPERIENCE GALLERY ================= */
+
+            const experienceOpenTarget = item.querySelector('.tl-head');
+            const openExperienceEntry = () => {
+                const galleryImages = item.__experienceLoadedImages || [];
+                if (galleryImages.length) openExperienceLightbox(galleryImages, item.__experienceCurrent || 0, e);
+                else if (e.images?.length) openExperienceLightbox(e.images.map((src, index) => ({ src, alt: `${e.company} — ${e.role} evidence image ${index + 1}` })), 0, e);
+            };
+
+            experienceOpenTarget?.addEventListener('click', event => {
+                if (event.target.closest('a, button')) return;
+                event.stopPropagation();
+                openExperienceEntry();
+            });
+
+            item.querySelector('.experience-open-target')?.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openExperienceEntry();
+                }
+            });
 
             if (e.images && e.images.length) {
+                const frame = item.querySelector('[data-experience-gallery-frame]');
+                const placeholder = item.querySelector('[data-experience-gallery-placeholder]');
+                const counter = item.querySelector('[data-gallery-counter]');
+                const prev = item.querySelector('[data-gallery-prev]');
+                const next = item.querySelector('[data-gallery-next]');
+                const loaded = [];
+                let current = 0;
 
-                let currentImage = 0;
-
-                const galleryImage =
-                    item.querySelector('[data-experience-gallery-image]');
-
-                const galleryCounter =
-                    item.querySelector('[data-gallery-counter]');
-
-                const previousButton =
-                    item.querySelector('[data-gallery-prev]');
-
-                const nextButton =
-                    item.querySelector('[data-gallery-next]');
-
-
-                function changeGalleryImage(nextIndex) {
-
-                    currentImage =
-                        (nextIndex + e.images.length) % e.images.length;
-
-                    galleryImage.classList.add('is-changing');
-
-                    setTimeout(() => {
-
-                        galleryImage.src =
-                            e.images[currentImage];
-
-                        galleryCounter.textContent =
-                            `${currentImage + 1} / ${e.images.length}`;
-
-                        requestAnimationFrame(() => {
-                            galleryImage.classList.remove('is-changing');
-                        });
-
-                    }, 220);
+                function renderGallery() {
+                    item.__experienceLoadedImages = loaded;
+                    item.__experienceCurrent = current;
+                    if (!loaded.length) {
+                        counter.textContent = '0 / 0';
+                        prev.disabled = true; next.disabled = true;
+                        placeholder.style.display = '';
+                        frame.querySelectorAll('img[data-experience-gallery-image]').forEach(img => img.remove());
+                        return;
+                    }
+                    current = (current + loaded.length) % loaded.length;
+                    item.__experienceCurrent = current;
+                    placeholder.style.display = 'none';
+                    frame.querySelectorAll('img[data-experience-gallery-image]').forEach(img => img.remove());
+                    const img = document.createElement('img');
+                    img.dataset.experienceGalleryImage = '1';
+                    img.src = loaded[current].src;
+                    img.alt = loaded[current].alt;
+                    img.addEventListener('click', event => { event.stopPropagation(); openExperienceLightbox(loaded, current, e); });
+                    frame.insertBefore(img, frame.firstChild);
+                    counter.textContent = `${current + 1} / ${loaded.length}`;
+                    prev.disabled = loaded.length < 2; next.disabled = loaded.length < 2;
                 }
 
-
-                previousButton.addEventListener('click', (event) => {
-
-                    event.stopPropagation();
-
-                    changeGalleryImage(currentImage - 1);
-
+                e.images.forEach(src => {
+                    const tester = new Image();
+                    tester.onload = () => { loaded.push({ src, alt: `${e.company} — ${e.role} evidence image ${loaded.length + 1}` }); renderGallery(); };
+                    tester.onerror = () => { };
+                    tester.src = src;
                 });
 
-
-                nextButton.addEventListener('click', (event) => {
-
-                    event.stopPropagation();
-
-                    changeGalleryImage(currentImage + 1);
-
-                });
-
+                prev.addEventListener('click', event => { event.stopPropagation(); if (!loaded.length) return; current--; renderGallery(); });
+                next.addEventListener('click', event => { event.stopPropagation(); if (!loaded.length) return; current++; renderGallery(); });
+                renderGallery();
             }
+
             timelineList.appendChild(item);
         });
 
