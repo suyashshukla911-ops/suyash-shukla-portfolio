@@ -4607,7 +4607,7 @@ MOBILE
         <div class="wrap">
             <div class="section-head reveal">
                 <div class="eyebrow">Credentials &amp; profiles</div>
-                <h2>Certifications and where to verify them</h2>
+                <h2>Certifications and Credentials </h2>
                 <p class="sub">Selected credentials, plus direct links to the authoritative external profiles rather
                     than a copy of their contents.</p>
             </div>
@@ -4798,8 +4798,16 @@ MOBILE
          * is used for experience evidence.
          */
         const EXPERIENCE_EVIDENCE_FILES = {
-            'thaejus-aerodyne': [],
-            'codec-technologies-india': [],
+            'thaejus-aerodyne': [
+                'offer_letter.pdf'
+            ],
+            'codec-technologies-india': [
+                'Course Suyash Shukla.pdf',
+                'Internship Certificate.pdf',
+                'LOR.pdf',
+                'OFFER LETTER.pdf',
+                'time_spent_on_course.pdf'
+            ],
             'inamigos-foundation': [
                 'Certificate_Completion.pdf',
                 'Offer_Letter.pdf'
@@ -5153,7 +5161,7 @@ MOBILE
                 slug: 'redynox',
                 detail: 'Explored network security fundamentals and conducted vulnerability analysis on intentionally vulnerable applications.',
                 bullets: ['Analyzed network traffic with Wireshark and studied firewalls, encryption and threat detection', 'Scanned WebGoat with OWASP ZAP, identifying SQL Injection, XSS and CSRF vulnerabilities', 'Implemented basic security configurations for small and large-scale networks'],
-                images: experienceImages('redynox',1),
+                images: experienceImages('redynox', 1),
                 evidence: experienceEvidence('redynox')
             },
             {
