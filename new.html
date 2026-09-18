@@ -398,52 +398,531 @@
             font-size: 1rem;
         }
 
+        /* ================= ASSOCIATIONS / LEADERSHIP / CAMPUS LIFE ================= */
+        .association-filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin: -6px 0 var(--sp-2xl);
+        }
+
+        .association-filter {
+            appearance: none;
+            border: 1px solid var(--border);
+            border-radius: var(--r-pill);
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 8px 13px;
+            font: 500 .74rem var(--font-mono);
+            letter-spacing: .03em;
+            cursor: pointer;
+            transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease;
+        }
+
+        .association-filter:hover {
+            color: var(--cyan);
+            border-color: var(--cyan);
+            transform: translateY(-2px);
+        }
+
+        .association-filter.active {
+            color: var(--bg-950);
+            background: var(--cyan);
+            border-color: var(--cyan);
+        }
+
         .association-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 18px;
+            align-items: stretch;
         }
 
         .association-card {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 22px;
-            padding: 28px;
+            appearance: none;
+            width: 100%;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
             border: 1px solid var(--border);
             border-radius: 18px;
-            background: rgba(248, 243, 234, .62);
+            overflow: hidden;
+            background: rgba(248, 243, 234, .78);
             box-shadow: 0 16px 45px rgba(75, 58, 37, .07);
-            transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+            text-align: left;
+            color: inherit;
+            cursor: pointer;
+            transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease, background .28s ease;
         }
 
-        .association-card:hover {
-            transform: translateY(-5px);
+        .association-card:hover,
+        .association-card:focus-visible {
+            transform: translateY(-6px);
             border-color: var(--cyan);
-            box-shadow: 0 22px 55px rgba(75, 58, 37, .11);
+            box-shadow: 0 24px 58px rgba(75, 58, 37, .13);
+            background: var(--surface-800);
+        }
+
+        .association-card:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 4px;
+        }
+
+        .association-card-media {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            min-height: 175px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--surface-700), var(--bg-900));
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* No text is placed over photos. This is only a silent visual fallback when no photo exists. */
+        .association-card-media::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(7, 10, 15, 0) 40%, rgba(35, 30, 24, .30) 100%);
+            pointer-events: none;
+        }
+
+        .association-card-media img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: center;
+            transition: transform .5s ease, filter .35s ease;
+        }
+
+        .association-card:hover .association-card-media img {
+            transform: scale(1.04);
+            filter: saturate(.98);
+        }
+
+        .association-media-placeholder {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(47, 127, 120, .18), transparent 34%),
+                linear-gradient(135deg, var(--surface-700), var(--bg-900));
+        }
+
+        .association-card-overlay-label {
+            position: absolute;
+            left: 14px;
+            bottom: 13px;
+            z-index: 2;
+            padding: 6px 9px;
+            border: 1px solid rgba(255, 255, 255, .42);
+            border-radius: 999px;
+            background: rgba(35, 30, 24, .48);
+            color: #fff;
+            font: 500 .63rem var(--font-mono);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            backdrop-filter: blur(7px);
+        }
+
+        .association-card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 22px 20px;
+        }
+
+        .association-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
 
         .association-index {
-            font: 600 .75rem var(--font-mono);
+            font: 600 .68rem var(--font-mono);
             color: var(--cyan);
-            padding-top: 4px;
+            letter-spacing: .08em;
+        }
+
+        .association-open {
+            color: var(--cyan);
+            font: 600 .67rem var(--font-mono);
+            opacity: .86;
+            white-space: nowrap;
         }
 
         .association-card h3 {
-            font-size: 1.45rem;
-            margin: 9px 0 10px;
+            font-size: clamp(1.22rem, 1.8vw, 1.48rem);
+            line-height: 1.15;
+            margin: 12px 0 9px;
+        }
+
+        .association-role {
+            color: var(--cyan);
+            font-family: var(--font-mono);
+            font-size: .73rem;
+            line-height: 1.5;
+            letter-spacing: .025em;
         }
 
         .association-card p {
             color: var(--text-secondary);
-            font-size: .95rem;
-            max-width: 58ch;
+            font-size: .91rem;
+            margin-top: 11px;
+            max-width: 55ch;
         }
 
         .association-tags {
             display: flex;
             flex-wrap: wrap;
+            gap: 7px;
+            margin-top: auto;
+            padding-top: 18px;
+        }
+
+        .association-tags .tag {
+            padding: 4px 9px;
+            font-size: .68rem;
+        }
+
+        .association-more-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .association-more {
+            appearance: none;
+            border: 1px solid var(--border);
+            border-radius: var(--r-pill);
+            background: rgba(248, 243, 234, .66);
+            color: var(--cyan);
+            padding: 11px 18px;
+            font: 600 .76rem var(--font-mono);
+            letter-spacing: .06em;
+            cursor: pointer;
+            transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+        }
+
+        .association-more:hover {
+            transform: translateY(-2px);
+            border-color: var(--cyan);
+            background: var(--surface-800);
+        }
+
+        .association-more-note {
+            margin-top: 9px;
+            text-align: center;
+            color: var(--text-muted);
+            font: 500 .66rem var(--font-mono);
+            letter-spacing: .04em;
+        }
+
+        .association-detail-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 145;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: min(6vh, 58px) 18px;
+            overflow-y: auto;
+            background: rgba(35, 30, 24, .55);
+            backdrop-filter: blur(12px);
+        }
+
+        .association-detail-overlay.open {
+            display: flex;
+        }
+
+        .association-detail {
+            width: min(980px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: var(--surface-800);
+            box-shadow: 0 32px 100px rgba(50, 40, 25, .26);
+            animation: associationDetailIn .32s ease;
+        }
+
+        @keyframes associationDetailIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px) scale(.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .association-detail-close {
+            position: sticky;
+            top: 16px;
+            float: right;
+            z-index: 5;
+            margin: 16px 16px -54px 0;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            background: rgba(248, 243, 234, .90);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            display: grid;
+            place-items: center;
+            transition: all .2s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .association-detail-close:hover {
+            color: var(--cyan);
+            border-color: var(--cyan);
+            transform: rotate(90deg);
+        }
+
+        .association-detail-hero {
+            padding: 26px 28px 0;
+        }
+
+        .association-detail-gallery {
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) 44px;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+
+        .association-detail-main-photo {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            min-height: 240px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-900);
+            cursor: pointer;
+        }
+
+        .association-detail-main-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .association-gallery-placeholder {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 22% 20%, rgba(47, 127, 120, .16), transparent 34%),
+                linear-gradient(135deg, var(--surface-700), var(--bg-900));
+        }
+
+        .association-gallery-btn {
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            background: var(--surface-800);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: all .2s ease;
+        }
+
+        .association-gallery-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            transform: scale(1.05);
+        }
+
+        .association-gallery-btn[disabled] {
+            opacity: .36;
+            cursor: default;
+            transform: none;
+        }
+
+        .association-gallery-count {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: rgba(35, 30, 24, .58);
+            color: #fff;
+            font: 500 .66rem var(--font-mono);
+            backdrop-filter: blur(6px);
+        }
+
+        .association-detail-kicker {
+            font-family: var(--font-mono);
+            font-size: .68rem;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin-bottom: 9px;
+        }
+
+        .association-detail h3 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            line-height: 1.04;
+            margin-bottom: 8px;
+            max-width: 17ch;
+        }
+
+        .association-detail-role {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 70ch;
+        }
+
+        .association-detail-content {
+            padding: 0 28px 30px;
+        }
+
+        .association-detail-meta {
+            display: flex;
+            flex-wrap: wrap;
             gap: 8px;
-            margin-top: 18px;
+            margin: 20px 0 25px;
+        }
+
+        .association-detail-section {
+            padding: 18px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .association-detail-section h4 {
+            font: 600 .72rem var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: .10em;
+            color: var(--cyan);
+            margin-bottom: 8px;
+        }
+
+        .association-detail-section p,
+        .association-detail-section li {
+            color: var(--text-secondary);
+            font-size: .94rem;
+        }
+
+        .association-detail-section ul {
+            margin: 8px 0 0;
+            padding-left: 19px;
+        }
+
+        .association-detail-thumbs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-top: 11px;
+            padding-bottom: 2px;
+            scrollbar-width: thin;
+        }
+
+        .association-detail-thumb {
+            width: 74px;
+            height: 56px;
+            flex: 0 0 auto;
+            overflow: hidden;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: var(--bg-900);
+            cursor: pointer;
+        }
+
+        .association-detail-thumb.active {
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 2px rgba(47, 127, 120, .10);
+        }
+
+        .association-detail-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .association-empty {
+            grid-column: 1 / -1;
+            padding: 34px;
+            border: 1px dashed var(--border);
+            border-radius: 16px;
+            color: var(--text-muted);
+            text-align: center;
+            font: 500 .76rem var(--font-mono);
+        }
+
+        @media (max-width:1020px) {
+            .association-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width:760px) {
+            .association-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .association-detail-overlay {
+                padding: 10px;
+            }
+
+            .association-detail {
+                max-height: 95vh;
+                border-radius: 17px;
+            }
+
+            .association-detail-hero {
+                padding: 18px 18px 0;
+            }
+
+            .association-detail-content {
+                padding: 0 18px 22px;
+            }
+
+            .association-detail-gallery {
+                grid-template-columns: 36px minmax(0, 1fr) 36px;
+                gap: 7px;
+            }
+
+            .association-gallery-btn {
+                width: 34px;
+                height: 34px;
+            }
+
+            .association-detail-main-photo {
+                min-height: 180px;
+            }
+
+            .association-detail h3 {
+                max-width: none;
+            }
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+
+            .association-card,
+            .association-card-media img,
+            .association-filter,
+            .association-more,
+            .association-detail-close {
+                transition: none !important;
+            }
+
+            .association-detail {
+                animation: none !important;
+            }
         }
 
         .custom-cursor,
@@ -4507,41 +4986,70 @@ MOBILE
         </div>
     </section>
 
-    <!-- ============ ASSOCIATIONS & LEADERSHIP ============ -->
+    <!-- ============ ASSOCIATIONS / LEADERSHIP / CAMPUS LIFE ============ -->
     <section class="section" id="associations">
         <div class="wrap">
             <div class="section-head reveal">
                 <div class="eyebrow">Beyond coursework</div>
                 <h2>Associations, leadership &amp; campus life.</h2>
-                <p class="sub">The people, teams and student communities where I learned to coordinate, build and
-                    contribute outside the classroom.</p>
+                <p class="sub">A visual archive of the communities, leadership roles, events, hackathons, outreach and
+                    campus experiences that sit outside the formal work and experience timeline.</p>
             </div>
-            <div class="association-grid reveal">
-                <article class="association-card">
-                    <div class="association-index">01</div>
-                    <div>
-                        <span class="badge">Leadership · 2026 — Present</span>
-                        <h3>IEEE Robotics and Automation Society</h3>
-                        <p>Head of Logistics — coordinating the operational side of robotics and automation activities
-                            in Bengaluru.</p>
-                        <div class="association-tags"><span class="tag">Robotics</span><span
-                                class="tag">Automation</span><span class="tag">Leadership</span></div>
-                    </div>
-                </article>
-                <article class="association-card">
-                    <div class="association-index">02</div>
-                    <div>
-                        <span class="badge">Student Association</span>
-                        <h3>JET Club · Electronics Community</h3>
-                        <p>Active contributor to a college electronics community, with interests spanning robotics,
-                            embedded systems and hands-on engineering.</p>
-                        <div class="association-tags"><span class="tag">Electronics</span><span
-                                class="tag">Embedded</span><span class="tag">Robotics</span></div>
-                    </div>
-                </article>
+
+            <div class="association-filter-row reveal" id="associationFilters" aria-label="Association categories">
             </div>
+
+            <div class="association-grid reveal" id="associationGrid" aria-live="polite"></div>
+
+            <div class="association-more-wrap reveal">
+                <button class="association-more" id="associationMoreButton" type="button" aria-expanded="false">
+                    Read More ↗
+                </button>
+            </div>
+            <p class="association-more-note" id="associationMoreNote">Events, outreach and campus-life entries are kept
+                behind Read More.</p>
         </div>
     </section>
+
+    <!-- Association detail view: opens without changing any other website section. -->
+    <div class="association-detail-overlay" id="associationDetailOverlay" aria-hidden="true">
+        <article class="association-detail" role="dialog" aria-modal="true" aria-labelledby="associationDetailTitle">
+            <button class="association-detail-close" id="associationDetailClose" type="button"
+                aria-label="Close details">×</button>
+
+            <div class="association-detail-hero">
+                <div class="association-detail-gallery">
+                    <button class="association-gallery-btn" id="associationGalleryPrev" type="button"
+                        aria-label="Previous photo">←</button>
+
+                    <div class="association-detail-main-photo" id="associationDetailPhotoFrame">
+                        <div class="association-gallery-placeholder" id="associationGalleryPlaceholder"></div>
+                        <img id="associationDetailPhoto" alt="" hidden>
+                        <span class="association-gallery-count" id="associationGalleryCount"></span>
+                    </div>
+
+                    <button class="association-gallery-btn" id="associationGalleryNext" type="button"
+                        aria-label="Next photo">→</button>
+                </div>
+
+                <div class="association-detail-kicker" id="associationDetailKicker"></div>
+                <h3 id="associationDetailTitle"></h3>
+                <p class="association-detail-role" id="associationDetailRole"></p>
+            </div>
+
+            <div class="association-detail-content">
+                <div class="association-detail-meta" id="associationDetailMeta"></div>
+                <div id="associationDetailSections"></div>
+
+                <div class="association-detail-section">
+                    <h4>Photo gallery</h4>
+                    <p>Keep only the photos that represent the activity. No evidence documents are required in this
+                        section.</p>
+                    <div class="association-detail-thumbs" id="associationDetailThumbs"></div>
+                </div>
+            </div>
+        </article>
+    </div>
 
     <!-- ============ SKILLS ============ -->
     <section class="section" id="skills">
@@ -6402,6 +6910,718 @@ MOBILE
             if (event.key === 'ArrowLeft') showSystemImage(currentSystemImage - 1);
             if (event.key === 'ArrowRight') showSystemImage(currentSystemImage + 1);
         });
+
+        /* ========================================================
+           ASSOCIATIONS / LEADERSHIP / CAMPUS LIFE
+           The first three entries are the featured associations. Additional
+           events, outreach and campus-life items appear only after Read More.
+           Add future hackathons/certifications/participations to this array.
+           ======================================================== */
+
+        const ASSOCIATION_ITEMS = [
+            {
+                slug: 'ieee-robotics-automation-society',
+                type: 'Leadership',
+                badge: 'Leadership · 2026 — Present',
+                title: 'IEEE Robotics and Automation Society',
+                role: 'Head of Logistics',
+                period: '2026 — Present',
+                summary: 'Head of Logistics for the IEEE Robotics and Automation Society, with responsibility centered on the operational side of robotics and automation activities.',
+                tags: ['Robotics', 'Automation', 'Leadership', 'Logistics'],
+                gallery: [
+                    'assets/associations/ieee-ras/01.jpeg',
+                    'assets/associations/ieee-ras/02.jpeg',
+                    'assets/associations/ieee-ras/03.jpeg',
+                    'assets/associations/ieee-ras/04.jpeg'
+                ],
+                sections: [
+                    { title: 'Association', body: 'IEEE Robotics and Automation Society' },
+                    { title: 'Role & period', body: 'Head of Logistics · 2026 — Present' },
+                    {
+                        title: 'Role scope',
+                        body: 'The logistics role sits on the operational side of the society: planning activity requirements, coordinating practical arrangements, keeping communication moving between teams, and supporting the smooth execution of robotics and automation activities.'
+                    },
+                    {
+                        title: 'Leadership focus',
+                        body: [
+                            'Operational planning and coordination for society activities.',
+                            'Supporting event readiness through timelines, requirements and communication.',
+                            'Working with members and teams so technical activities can run with the required logistical support.',
+                            'Connecting planning work with the larger leadership and community goals of the society.'
+                        ]
+                    },
+                    {
+                        title: 'Learning',
+                        body: 'The role is building practical leadership around coordination, communication, planning, responsibility and execution in a student technical community.'
+                    }
+                ]
+            },
+            {
+                slug: 'jet-club-electronics-community',
+                type: 'Association',
+                badge: 'Student Association · Completed',
+                title: 'JET Club · Electronics Community',
+                role: 'Social Media Head · 2025 · Two-year association',
+                period: '2024 — 2025 · Completed',
+                summary: 'A two-year association with JET Club during B.Sc., including the Social Media Head role in 2025, completed before signing off from the club.',
+                tags: ['Electronics', 'Embedded', 'Robotics', 'Social Media', 'Community'],
+                gallery: [
+                    'assets/associations/jet-club/01.jpeg',
+                    'assets/associations/jet-club/02.jpeg',
+                    'assets/associations/jet-club/03.jpeg',
+                    'assets/associations/jet-club/04.jpeg',
+                    'assets/associations/jet-club/05.jpeg',
+                    'assets/associations/jet-club/06.jpeg',
+                    'assets/associations/jet-club/07.jpeg',
+                    'assets/associations/jet-club/08.jpeg',
+                    'assets/associations/jet-club/09.jpeg',
+                    'assets/associations/jet-club/10.jpeg',
+                    'assets/associations/jet-club/11.jpeg'
+                ],
+                sections: [
+                    { title: 'Association', body: 'JET Club · Electronics Community, St. Joseph’s University' },
+                    { title: 'Role & period', body: 'Two-year association during B.Sc. · Social Media Head in 2025 · Completed' },
+                    {
+                        title: 'Contribution',
+                        body: 'During the Social Media Head phase, the focus was on building visibility around club activities and making the digital presence reflect the energy of the work happening on campus. This included content strategy, poster rollouts, reel campaigns, countdowns, live coverage and post-event highlights.'
+                    },
+                    {
+                        title: 'Shock Fest',
+                        body: 'As Social Media Manager of the JET Club Core Committee, Shock Fest became a practical exercise in digital event communication. The work covered planning the content flow, promoting the event before it happened, maintaining live visibility, and creating post-event highlights after execution.'
+                    },
+                    {
+                        title: 'Leadership & coordination',
+                        body: 'The role involved managing visibility while the wider team handled event execution. It strengthened the ability to coordinate with different people, work around event timelines and turn an activity into a coherent story for an audience.'
+                    },
+                    {
+                        title: 'Learning',
+                        body: 'The strongest takeaway from the club period was that communication and marketing are not only promotion; they are also storytelling, consistency, coordination and community building.'
+                    }
+                ]
+            },
+            {
+                slug: 'cyber-hex',
+                type: 'Leadership',
+                badge: 'Leadership · 2026 — Present',
+                title: 'Cyber HEX',
+                role: 'Technical Lead · Cybersecurity Community',
+                period: '2026 — Present',
+                summary: 'Technical Lead in the cybersecurity community of the college, focused on technical direction, learning activities and community-facing initiatives.',
+                tags: ['Cybersecurity', 'Technical Lead', 'Community', 'Leadership'],
+                gallery: [
+                    'assets/associations/cyber-hex/01.png',
+                    'assets/associations/cyber-hex/02.jpg',
+                    'assets/associations/cyber-hex/03.jpg',
+                    'assets/associations/cyber-hex/04.jpg'
+                ],
+                sections: [
+                    { title: 'Association', body: 'Cyber HEX · Cybersecurity Community' },
+                    { title: 'Role & period', body: 'Technical Lead · 2026 — Present' },
+                    {
+                        title: 'Technical leadership',
+                        body: 'The Technical Lead role is centered on shaping the technical side of the community: helping structure learning-oriented activities, supporting technical planning, and connecting cybersecurity concepts with practical student engagement.'
+                    },
+                    {
+                        title: 'Community activities',
+                        body: [
+                            'Planning and supporting cybersecurity-focused sessions and activities.',
+                            'Technical contribution to CTF-oriented learning and problem-solving formats.',
+                            'Supporting workshops, seminars and cybersecurity awareness initiatives.',
+                            'Helping create a community where students can learn, experiment and collaborate around cybersecurity.'
+                        ]
+                    },
+                    {
+                        title: 'Leadership focus',
+                        body: 'The position combines technical responsibility with student-community leadership: communicating clearly, working with a team, helping structure activities and keeping the technical side aligned with the purpose of the club.'
+                    },
+                    {
+                        title: 'Learning',
+                        body: 'The role is developing technical leadership, communication, coordination, event planning and the ability to translate cybersecurity topics into activities that students can engage with.'
+                    }
+                ]
+            },
+
+            /* ========================= EVENTS ========================= */
+            {
+                slug: 'occupier-connect-2026',
+                type: 'Event',
+                badge: 'Event · 2026',
+                title: 'Occupier Connect 2026 · Human by Design',
+                role: 'Attendee · Embassy REIT',
+                period: '2026',
+                summary: 'Attended Occupier Connect 2026 and explored perspectives on AI, automation and evolving talent strategies shaping the future of work.',
+                tags: ['Event', 'Networking', 'AI', 'Automation', 'Future of Work'],
+                gallery: ['assets/associations/events/occupier-connect/01.jpeg', 'assets/associations/events/occupier-connect/02.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'Occupier Connect 2026 · Human by Design, hosted by Embassy REIT' },
+                    { title: 'Experience', body: 'The event provided exposure to how AI, automation and changing talent strategies are influencing the future of work, with insights shared by industry leaders.' },
+                    { title: 'Key takeaway', body: 'As an Electronics and Computer Science student, the experience helped connect technical learning with the wider skills, mindset and adaptability expected in an AI-driven working environment.' }
+                ]
+            },
+            {
+                slug: 'global-degrees-education-fair',
+                type: 'Event',
+                badge: 'Event · Global Degrees',
+                title: 'Global Degrees · Global Education Fair',
+                role: 'Attendee · Bengaluru',
+                period: '2026',
+                summary: 'Explored global higher-education opportunities and interacted with representatives from 100+ international universities.',
+                tags: ['Global Education', 'Study Abroad', 'Networking', 'Learning'],
+                gallery: ['assets/associations/events/global-degrees/01.jpeg', 'assets/associations/events/global-degrees/02.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'Global Degrees education fair in Bengaluru.' },
+                    { title: 'Experience', body: 'Interacted with representatives from 100+ international universities across countries including the USA, UK, Germany, Australia and France.' },
+                    { title: 'What I explored', body: 'The conversations covered higher-education opportunities abroad, scholarship options, visa processes and possible career pathways.' },
+                    { title: 'Learning', body: 'The event helped build greater clarity around international academic options and the kind of planning required to evaluate future study and career pathways.' }
+                ]
+            },
+            {
+                slug: 'india-electronics-week-iotshow-2026',
+                type: 'Event',
+                badge: 'Event · 2026',
+                title: 'India Electronics Week 2026 · IOTshow 2026',
+                role: 'Attendee · KTPO Convention Centre',
+                period: '2026',
+                summary: 'Explored the evolving Indian electronics ecosystem across embedded systems, IoT, AI-driven industrial solutions and semiconductor technologies.',
+                tags: ['Electronics', 'IoT', 'Embedded Systems', 'AI', 'Semiconductor'],
+                gallery: ['assets/associations/events/india-electronics-week/01.jpeg', 'assets/associations/events/india-electronics-week/02.jpeg', 'assets/associations/events/india-electronics-week/03.jpeg', 'assets/associations/events/india-electronics-week/04.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'India Electronics Week 2026 and IOTshow 2026 at the KTPO Convention Centre.' },
+                    { title: 'Experience', body: 'Visited an ecosystem filled with innovators, startups, engineers and industry leaders working across electronics, embedded systems, IoT, automation, AI-driven industrial solutions and semiconductor technologies.' },
+                    { title: 'Key takeaway', body: 'The experience reinforced that engineering is not limited to theory; practical problem solving, scalable implementation and continuous learning from the wider technology ecosystem are equally important.' },
+                    { title: 'Connection to my journey', body: 'As a student of Electronics and Computer Science, seeing technologies operating beyond classroom concepts provided a clearer view of the direction of the industry and the areas in which I want to contribute.' }
+                ]
+            },
+            {
+                slug: 'iisc-open-day-2026',
+                type: 'Event',
+                badge: 'Event · 2026',
+                title: 'IISc Open Day 2026',
+                role: 'Attendee · Indian Institute of Science',
+                period: '2026',
+                summary: 'Visited IISc Open Day to explore research, innovation and the work being carried out across science and technology.',
+                tags: ['IISc', 'Research', 'Innovation', 'Science', 'Technology'],
+                gallery: ['assets/associations/events/iisc-open-day/01.jpeg', 'assets/associations/events/iisc-open-day/02.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'IISc Open Day 2026 in Bengaluru.' },
+                    { title: 'Experience', body: 'Explored the campus, interacted with researchers and learned more about ongoing work across science and technology.' },
+                    { title: 'Learning', body: 'The visit offered a stronger sense of how research environments operate and how curiosity, experimentation and innovation contribute to long-term technological progress.' }
+                ]
+            },
+            {
+                slug: 'open-day-26-elixir-smart-frame',
+                type: 'Campus Life',
+                badge: 'Campus Life · Open Day 2026',
+                title: 'SJU Open Day ’26 · ELIXIR',
+                role: 'Project Presenter · Smart Frame',
+                period: '2026',
+                summary: 'Presented the Smart Frame browser-based IoT photo management system and interacted with faculty, students and visitors during the project showcase.',
+                tags: ['Open Day', 'IoT', 'ESP32', 'Project Showcase', 'Presentation'],
+                gallery: ['assets/associations/events/open-day-elixir/01.jpeg', 'assets/associations/events/open-day-elixir/02.jpeg', 'assets/associations/events/open-day-elixir/03.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'Open Day ’26 – ELIXIR at St. Joseph’s University, Bengaluru.' },
+                    { title: 'Project presented', body: 'Smart Frame: A Browser-Based IoT Photo Management System using ESP32.' },
+                    { title: 'What I presented', body: 'Explained the ESP32 web server and browser-based dashboard, wireless image management, SD card storage and IoT communication.' },
+                    { title: 'Interaction & learning', body: 'The showcase involved discussions with faculty members, students and visitors, answering questions, receiving feedback and translating a technical system into a clear demonstration for people with different backgrounds.' },
+                    { title: 'Outcome', body: 'The experience strengthened both technical communication and presentation skills while showing how embedded systems, web technologies and IoT can be combined into a practical system.' }
+                ]
+            },
+            {
+                slug: 'ieee-day-iimc',
+                type: 'Event',
+                badge: 'Event · IEEE Day',
+                title: 'IEEE Day · IIMC',
+                role: 'Attendee',
+                period: '2026',
+                summary: 'Attended an IEEE Day annual gathering through IIMC and took part in the broader IEEE community experience.',
+                tags: ['IEEE', 'Networking', 'Community', 'Event'],
+                gallery: ['assets/associations/events/ieee-day-iimc/01.jpeg', 'assets/associations/events/ieee-day-iimc/02.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'IEEE Day annual event attended through IIMC.' },
+                    { title: 'Experience', body: 'Participation provided exposure to the IEEE community beyond day-to-day student activities and created another opportunity to connect with people working and learning around technology.' },
+                    { title: 'Learning', body: 'The experience added to the broader networking and professional-community side of student life.' }
+                ]
+            },
+            {
+                slug: 'shock-fest-sju',
+                type: 'Event',
+                badge: 'Event · JET Club',
+                title: 'Shock Fest · SJU',
+                role: 'Social Media Manager · JET Club Core Committee',
+                period: '2025',
+                summary: 'Managed the digital visibility of Shock Fest through content strategy, campaigns, live coverage and post-event storytelling.',
+                tags: ['Shock Fest', 'JET Club', 'Social Media', 'Event Marketing', 'Student Leadership'],
+                gallery: ['assets/associations/events/shock-fest/01.jpeg', 'assets/associations/events/shock-fest/02.jpeg', 'assets/associations/events/shock-fest/03.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'Shock Fest at St. Joseph’s University.' },
+                    { title: 'Role', body: 'Social Media Manager of the JET Club Core Committee.' },
+                    { title: 'Contribution', body: 'Handled content strategy, poster rollouts, reel campaigns, countdowns, live coverage and post-event highlights to build and maintain digital engagement around the fest.' },
+                    { title: 'Learning', body: 'The experience reinforced that event marketing is more than promotion; it is storytelling, consistency, audience engagement and building a digital identity that reflects the energy of an event.' }
+                ]
+            },
+            {
+                slug: 'leela-palace-networking-event',
+                type: 'Event',
+                badge: 'Event · Networking',
+                title: 'Leela Palace · Networking Event',
+                role: 'Attendee',
+                period: '2026 · Name/details to be updated',
+                summary: 'A networking event attended at The Leela Palace. The exact event title and deeper write-up can be added when the event details are available.',
+                tags: ['Networking', 'Event', 'Campus Life'],
+                gallery: ['assets/associations/events/leela-palace/01.jpeg', 'assets/associations/events/leela-palace/02.jpeg'],
+                sections: [
+                    { title: 'Event', body: 'Networking event attended at The Leela Palace, Bengaluru.' },
+                    { title: 'Details', body: 'The exact event name and additional event-specific details are intentionally left open so they can be replaced with the final information later.' }
+                ]
+            },
+
+            /* ========================= OUTREACH ========================= */
+            {
+                slug: 'rural-outreach-camp',
+                type: 'Outreach',
+                badge: 'Outreach · Campus Life',
+                title: 'Rural Outreach Camp',
+                role: 'Student Outreach Participant',
+                period: 'Campus Life',
+                summary: 'Participated in a rural outreach activity as part of campus life and community engagement.',
+                tags: ['Outreach', 'Community', 'Service', 'Campus Life'],
+                gallery: ['assets/associations/outreach/rural-outreach/01.jpeg', 'assets/associations/outreach/rural-outreach/02.jpeg', 'assets/associations/outreach/rural-outreach/03.jpeg'],
+                sections: [
+                    { title: 'Activity', body: 'Rural Outreach Camp.' },
+                    { title: 'Participation', body: 'Took part in an outreach-focused campus activity aimed at engaging beyond the university environment and understanding community-facing work.' },
+                    { title: 'Learning', body: 'The experience added a people-focused dimension to campus life by emphasizing communication, participation and the value of contributing outside the formal classroom setting.' }
+                ]
+            },
+            {
+                slug: 'government-school-student-outreach',
+                type: 'Outreach',
+                badge: 'Outreach · Teaching',
+                title: 'Government School Student Outreach',
+                role: 'Student Volunteer · Teaching Activity',
+                period: 'Campus Life',
+                summary: 'Participated in an outreach activity involving teaching and interacting with government school students.',
+                tags: ['Outreach', 'Teaching', 'Community', 'Student Engagement'],
+                gallery: ['assets/associations/outreach/government-school/01.jpeg', 'assets/associations/outreach/government-school/02.jpeg', 'assets/associations/outreach/government-school/03.jpeg'],
+                sections: [
+                    { title: 'Activity', body: 'Government school student outreach and teaching activity.' },
+                    { title: 'Contribution', body: 'Participated in teaching students and engaging with them in a community-oriented learning environment.' },
+                    { title: 'Learning', body: 'The activity reinforced the importance of explaining ideas clearly, adapting communication to the audience and treating knowledge-sharing as a two-way learning experience.' }
+                ]
+            },
+
+            /* ========================= CAMPUS LIFE ========================= */
+            {
+                slug: 'msc-ai-cybersecurity-orientation',
+                type: 'Campus Life',
+                badge: 'Campus Life · M.Sc. 2026',
+                title: 'M.Sc. AI & Cyber Security · Orientation',
+                role: 'Participant · Team-building activity',
+                period: '2026',
+                summary: 'Started the M.Sc. Artificial Intelligence & Cyber Security journey with an orientation day combining faculty interaction, team-building and collaborative problem solving.',
+                tags: ['M.Sc.', 'AI', 'Cyber Security', 'Teamwork', 'Leadership'],
+                gallery: ['assets/associations/campus-life/msc-orientation/01.jpeg', 'assets/associations/campus-life/msc-orientation/02.jpeg'],
+                sections: [
+                    { title: 'Experience', body: 'The orientation included interaction with Dr. Denzil Lobo and faculty members, along with activities focused on leadership, personal growth and collaboration.' },
+                    { title: 'Team-building challenge', body: 'Our team had to construct the tallest and strongest tower using limited resources. The team built a tower measuring 132 cm, the tallest among the teams, and secured the winning position.' },
+                    { title: 'Learning', body: 'The activity highlighted collaboration, planning, communication and leadership, while also making the beginning of the M.Sc. journey more connected through teamwork and shared experiences.' }
+                ]
+            }
+        ];
+
+        const FEATURED_ASSOCIATION_COUNT = 3;
+        const associationGrid = document.getElementById('associationGrid');
+        const associationFilters = document.getElementById('associationFilters');
+        const associationMoreButton = document.getElementById('associationMoreButton');
+        const associationMoreNote = document.getElementById('associationMoreNote');
+        const associationDetailOverlay = document.getElementById('associationDetailOverlay');
+        const associationDetailClose = document.getElementById('associationDetailClose');
+        const associationDetailTitle = document.getElementById('associationDetailTitle');
+        const associationDetailKicker = document.getElementById('associationDetailKicker');
+        const associationDetailRole = document.getElementById('associationDetailRole');
+        const associationDetailMeta = document.getElementById('associationDetailMeta');
+        const associationDetailSections = document.getElementById('associationDetailSections');
+        const associationDetailPhoto = document.getElementById('associationDetailPhoto');
+        const associationGalleryPlaceholder = document.getElementById('associationGalleryPlaceholder');
+        const associationGalleryCount = document.getElementById('associationGalleryCount');
+        const associationGalleryPrev = document.getElementById('associationGalleryPrev');
+        const associationGalleryNext = document.getElementById('associationGalleryNext');
+        const associationDetailThumbs = document.getElementById('associationDetailThumbs');
+        const associationDetailPanel = associationDetailOverlay.querySelector('.association-detail');
+
+        let currentAssociation = null;
+        let currentAssociationImages = [];
+        let currentAssociationImageIndex = 0;
+        let activeAssociationFilter = 'all';
+        let associationsExpanded = false;
+
+        function associationTypeLabel(type) {
+            const map = {
+                all: 'All',
+                Association: 'Associations',
+                Leadership: 'Leadership',
+                'Campus Life': 'Campus Life',
+                Event: 'Events',
+                Hackathon: 'Hackathons',
+                Outreach: 'Outreach',
+                Certification: 'Certifications',
+                Participation: 'Participation'
+            };
+            return map[type] || type;
+        }
+
+        function associationHasType(type, expanded = associationsExpanded) {
+            const pool = expanded ? ASSOCIATION_ITEMS : ASSOCIATION_ITEMS.slice(0, FEATURED_ASSOCIATION_COUNT);
+            return pool.some(item => item.type === type);
+        }
+
+        function renderAssociationFilters() {
+            const preferredTypes = [
+                'Association',
+                'Leadership',
+                'Campus Life',
+                'Event',
+                'Hackathon',
+                'Outreach',
+                'Certification',
+                'Participation'
+            ];
+
+            const availableTypes = preferredTypes.filter(type => associationHasType(type));
+
+            associationFilters.innerHTML = [
+                `<button class="association-filter ${activeAssociationFilter === 'all' ? 'active' : ''}" type="button" data-association-filter="all">All</button>`,
+                ...availableTypes.map(type => `
+                    <button class="association-filter ${activeAssociationFilter === type ? 'active' : ''}" type="button" data-association-filter="${type}">
+                        ${associationTypeLabel(type)}
+                    </button>
+                `)
+            ].join('');
+
+            associationFilters.querySelectorAll('[data-association-filter]').forEach(button => {
+                button.addEventListener('click', () => {
+                    activeAssociationFilter = button.dataset.associationFilter || 'all';
+                    renderAssociationFilters();
+                    renderAssociations();
+                });
+            });
+        }
+
+        function updateAssociationMoreButton() {
+            const hasMore = ASSOCIATION_ITEMS.length > FEATURED_ASSOCIATION_COUNT;
+            associationMoreButton.hidden = !hasMore;
+            associationMoreNote.hidden = !hasMore;
+
+            if (!hasMore) return;
+
+            associationMoreButton.setAttribute('aria-expanded', String(associationsExpanded));
+            associationMoreButton.textContent = associationsExpanded ? 'Show Less ↑' : 'Read More ↗';
+            associationMoreNote.textContent = associationsExpanded
+                ? 'Showing events, outreach and campus-life entries.'
+                : 'Events, outreach and campus-life entries are kept behind Read More.';
+        }
+
+        function createAssociationCard(item, index) {
+            const card = document.createElement('article');
+            card.className = 'association-card';
+            card.dataset.associationSlug = item.slug;
+            card.tabIndex = 0;
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-label', `Open ${item.title} details`);
+
+            card.innerHTML = `
+                <div class="association-card-media">
+                    <div class="association-media-placeholder" aria-hidden="true"></div>
+                    <img src="${item.gallery?.[0] || ''}" alt="${item.title}" loading="lazy" hidden>
+                    <span class="association-card-overlay-label">${associationTypeLabel(item.type)}</span>
+                </div>
+
+                <div class="association-card-body">
+                    <div class="association-card-top">
+                        <span class="association-index">${String(index + 1).padStart(2, '0')}</span>
+                        <span class="association-open">Open details ↗</span>
+                    </div>
+
+                    <span class="badge">${item.badge}</span>
+                    <h3>${item.title}</h3>
+                    <div class="association-role">${item.role}</div>
+                    <p>${item.summary}</p>
+
+                    <div class="association-tags">
+                        ${(item.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            const image = card.querySelector('img');
+            const placeholder = card.querySelector('.association-media-placeholder');
+
+            const showPhoto = () => {
+                image.hidden = false;
+                placeholder.hidden = true;
+            };
+            const showFallback = () => {
+                image.hidden = true;
+                placeholder.hidden = false;
+            };
+
+            if (image && image.getAttribute('src')) {
+                image.addEventListener('load', showPhoto, { once: true });
+                image.addEventListener('error', showFallback, { once: true });
+
+                if (image.complete) {
+                    if (image.naturalWidth > 0) showPhoto();
+                    else showFallback();
+                }
+            } else {
+                showFallback();
+            }
+
+            card.addEventListener('click', () => openAssociationDetail(item, true));
+            card.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openAssociationDetail(item, true);
+                }
+            });
+
+            return card;
+        }
+
+        function renderAssociations() {
+            const pool = associationsExpanded ? ASSOCIATION_ITEMS : ASSOCIATION_ITEMS.slice(0, FEATURED_ASSOCIATION_COUNT);
+            const filtered = activeAssociationFilter === 'all'
+                ? pool
+                : pool.filter(item => item.type === activeAssociationFilter);
+
+            associationGrid.innerHTML = '';
+
+            if (!filtered.length) {
+                associationGrid.innerHTML = `
+                    <div class="association-empty">No entries are currently added to this category.</div>
+                `;
+                return;
+            }
+
+            filtered.forEach((item, index) => {
+                const card = createAssociationCard(item, index);
+                if (!associationsExpanded && index >= FEATURED_ASSOCIATION_COUNT) card.hidden = true;
+                associationGrid.appendChild(card);
+            });
+
+            updateAssociationMoreButton();
+        }
+
+        function associationPhotoExists(src, index) {
+            return new Promise(resolve => {
+                if (!src) {
+                    resolve(null);
+                    return;
+                }
+
+                const probe = new Image();
+                probe.onload = () => resolve({ src, index });
+                probe.onerror = () => resolve(null);
+                probe.src = src;
+            });
+        }
+
+        async function prepareAssociationGallery(item) {
+            const checks = await Promise.all((item.gallery || []).map((src, index) => associationPhotoExists(src, index)));
+            return checks.filter(Boolean).map(result => result.src);
+        }
+
+        function renderAssociationDetailSections(item) {
+            associationDetailMeta.innerHTML = `
+                <span class="tag">${associationTypeLabel(item.type)}</span>
+                <span class="tag">${item.period}</span>
+                ${(item.tags || []).slice(0, 6).map(tag => `<span class="tag">${tag}</span>`).join('')}
+            `;
+
+            associationDetailSections.innerHTML = (item.sections || []).map(section => `
+                <section class="association-detail-section">
+                    <h4>${section.title}</h4>
+                    ${Array.isArray(section.body)
+                    ? `<ul>${section.body.map(point => `<li>${point}</li>`).join('')}</ul>`
+                    : `<p>${section.body}</p>`}
+                </section>
+            `).join('');
+        }
+
+        function renderAssociationGallery() {
+            const hasImages = currentAssociationImages.length > 0;
+            const total = currentAssociationImages.length;
+
+            associationDetailPhoto.hidden = !hasImages;
+            associationGalleryPlaceholder.hidden = hasImages;
+            associationGalleryCount.textContent = hasImages ? `${currentAssociationImageIndex + 1} / ${total}` : '';
+
+            associationGalleryPrev.disabled = !hasImages || total < 2;
+            associationGalleryNext.disabled = !hasImages || total < 2;
+
+            if (hasImages) {
+                const src = currentAssociationImages[currentAssociationImageIndex];
+                associationDetailPhoto.src = src;
+                associationDetailPhoto.alt = `${currentAssociation.title} — photo ${currentAssociationImageIndex + 1}`;
+            }
+
+            associationDetailThumbs.innerHTML = hasImages
+                ? currentAssociationImages.map((src, index) => `
+                    <button class="association-detail-thumb ${index === currentAssociationImageIndex ? 'active' : ''}"
+                            type="button"
+                            data-association-photo-index="${index}"
+                            aria-label="Show photo ${index + 1}">
+                        <img src="${src}" alt="" loading="lazy">
+                    </button>
+                `).join('')
+                : '';
+
+            associationDetailThumbs.querySelectorAll('[data-association-photo-index]').forEach(button => {
+                button.addEventListener('click', () => {
+                    showAssociationImage(Number(button.dataset.associationPhotoIndex), true);
+                });
+            });
+        }
+
+        function scrollAssociationDetailToTop() {
+            if (associationDetailPanel) {
+                associationDetailPanel.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            associationDetailOverlay.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showAssociationImage(index, scrollToTop = false) {
+            if (!currentAssociationImages.length) return;
+            const total = currentAssociationImages.length;
+            currentAssociationImageIndex = (index + total) % total;
+            renderAssociationGallery();
+            if (scrollToTop) scrollAssociationDetailToTop();
+        }
+
+        function setAssociationDetailHash(slug) {
+            if (window.location.hash === `#association/${slug}`) return;
+            history.pushState({ association: slug }, '', `#association/${slug}`);
+        }
+
+        function clearAssociationDetailHash() {
+            if (window.location.hash.startsWith('#association/')) {
+                history.pushState({}, '', `${window.location.pathname}${window.location.search}`);
+            }
+        }
+
+        async function openAssociationDetail(item, updateHash = false) {
+            currentAssociation = item;
+
+            associationDetailKicker.textContent = item.badge;
+            associationDetailTitle.textContent = item.title;
+            associationDetailRole.textContent = item.role;
+            renderAssociationDetailSections(item);
+
+            currentAssociationImages = [];
+            currentAssociationImageIndex = 0;
+            renderAssociationGallery();
+
+            associationDetailOverlay.classList.add('open');
+            associationDetailOverlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('lightbox-open');
+
+            const oldScrollY = window.scrollY;
+            document.body.dataset.associationScrollY = String(oldScrollY);
+            document.body.style.overflow = 'hidden';
+
+            if (updateHash) setAssociationDetailHash(item.slug);
+            scrollAssociationDetailToTop();
+
+            const images = await prepareAssociationGallery(item);
+
+            if (!currentAssociation || currentAssociation.slug !== item.slug) return;
+
+            currentAssociationImages = images;
+            currentAssociationImageIndex = 0;
+            renderAssociationGallery();
+            associationDetailClose.focus();
+        }
+
+        function closeAssociationDetail(updateHash = true) {
+            associationDetailOverlay.classList.remove('open');
+            associationDetailOverlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('lightbox-open');
+
+            const scrollY = Number(document.body.dataset.associationScrollY || 0);
+            document.body.style.overflow = '';
+
+            if (scrollY) window.scrollTo(0, scrollY);
+
+            currentAssociation = null;
+            currentAssociationImages = [];
+            currentAssociationImageIndex = 0;
+
+            if (updateHash) clearAssociationDetailHash();
+        }
+
+        function openAssociationFromHash() {
+            const prefix = '#association/';
+            if (!window.location.hash.startsWith(prefix)) return;
+
+            const slug = decodeURIComponent(window.location.hash.slice(prefix.length));
+            const item = ASSOCIATION_ITEMS.find(entry => entry.slug === slug);
+            if (item) {
+                if (ASSOCIATION_ITEMS.indexOf(item) >= FEATURED_ASSOCIATION_COUNT) {
+                    associationsExpanded = true;
+                    activeAssociationFilter = 'all';
+                    renderAssociationFilters();
+                    renderAssociations();
+                }
+                openAssociationDetail(item, false);
+            }
+        }
+
+        associationMoreButton.addEventListener('click', () => {
+            associationsExpanded = !associationsExpanded;
+            activeAssociationFilter = 'all';
+            renderAssociationFilters();
+            renderAssociations();
+            updateAssociationMoreButton();
+        });
+
+        associationGalleryPrev.addEventListener('click', () => showAssociationImage(currentAssociationImageIndex - 1));
+        associationGalleryNext.addEventListener('click', () => showAssociationImage(currentAssociationImageIndex + 1));
+
+        associationDetailPhoto.addEventListener('click', () => {
+            if (currentAssociationImages.length) scrollAssociationDetailToTop();
+        });
+
+        associationDetailClose.addEventListener('click', () => closeAssociationDetail(true));
+
+        associationDetailOverlay.addEventListener('click', event => {
+            if (event.target === associationDetailOverlay) closeAssociationDetail(true);
+        });
+
+        window.addEventListener('popstate', () => {
+            if (window.location.hash.startsWith('#association/')) {
+                openAssociationFromHash();
+            } else if (associationDetailOverlay.classList.contains('open')) {
+                closeAssociationDetail(false);
+            }
+        });
+
+        window.addEventListener('hashchange', openAssociationFromHash);
+
+        document.addEventListener('keydown', event => {
+            if (!associationDetailOverlay.classList.contains('open')) return;
+
+            if (event.key === 'Escape') {
+                closeAssociationDetail(true);
+            } else if (event.key === 'ArrowLeft') {
+                showAssociationImage(currentAssociationImageIndex - 1);
+            } else if (event.key === 'ArrowRight') {
+                showAssociationImage(currentAssociationImageIndex + 1);
+            }
+        });
+
+        renderAssociationFilters();
+        renderAssociations();
+        updateAssociationMoreButton();
+        openAssociationFromHash();
     </script>
 </body>
 
