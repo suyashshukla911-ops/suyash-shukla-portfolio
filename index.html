@@ -2409,6 +2409,67 @@ MOBILE
             min-width: 0;
         }
 
+        .tl-toggle {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            color: var(--cyan);
+            font: 600 .9rem var(--font-mono);
+            background: var(--surface-800);
+        }
+
+        .tl-item.open .tl-toggle {
+            background: rgba(47, 127, 120, .08);
+            border-color: var(--cyan);
+        }
+
+        @media (max-width: 900px) {
+            .tl-content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .experience-gallery {
+                order: 2;
+            }
+
+            .experience-gallery-frame {
+                height: min(52vw, 360px);
+                min-height: 190px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .tl-item {
+                padding-left: 22px;
+            }
+
+            .tl-head {
+                align-items: center;
+            }
+
+            .tl-head h4 {
+                font-size: 1.05rem;
+            }
+
+            .tl-toggle {
+                width: 28px;
+                height: 28px;
+            }
+
+            .experience-gallery-frame {
+                height: 230px;
+            }
+
+            .experience-gallery-btn {
+                width: 36px;
+                height: 36px;
+            }
+        }
+
         .experience-open-target {
             cursor: pointer;
             width: fit-content;
@@ -2887,6 +2948,12 @@ MOBILE
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
+        }
+
+        .experience-evidence-empty {
+            color: var(--text-muted);
+            font: 500 .68rem/1.6 var(--font-mono);
+            padding: 2px 0 0;
         }
 
         /* ================= SKILLS ================= */
@@ -4707,11 +4774,82 @@ MOBILE
                 `./assets/projects/${slug}/${String(i + 1).padStart(2, '0')}.${ext}`
         );
 
-        const experienceImages = (slug, count = 6, ext = 'png') => Array.from(
-            { length: count },
-            (_, i) =>
-                `./assets/experience/${slug}/${String(i + 1).padStart(2, '0')}.${ext}`
+        /* Experience images use: assets/experience/<company-slug>/images/01.png, 02.png ... */
+        const experienceImages = (slug, max = 20) => Array.from(
+            { length: max },
+            (_, i) => `./assets/experience/${slug}/images/${String(i + 1).padStart(2, '0')}.png`
         );
+
+        /*
+         * LOCAL EXPERIENCE EVIDENCE
+         * -----------------------------------------------
+         * Keep the exact filename used in each company's
+         * evidences folder. The website displays the filename
+         * exactly as written here and links to that local file.
+         *
+         * Example:
+         * 'elevate-labs': [
+         *     'Internship Certificate.pdf',
+         *     'Final Report.docx',
+         *     'Presentation.pptx'
+         * ]
+         *
+         * No GitHub API, repository fetching or external lookup
+         * is used for experience evidence.
+         */
+        const EXPERIENCE_EVIDENCE_FILES = {
+            'thaejus-aerodyne': [],
+            'codec-technologies-india': [],
+            'inamigos-foundation': [],
+            'apexplanet-software': [],
+            'india-space-week': [],
+            'elevate-labs': [],
+            'yhills': [],
+            'bharat-space-education-research-centre': [],
+            'future-interns': [],
+            'redynox': [],
+            'lohia-corp-limited': [
+                'certificate.pdf',
+                'finalday.pptx',
+                'report.pdf'
+            ]
+        };
+
+        const experienceEvidence = slug =>
+            (EXPERIENCE_EVIDENCE_FILES[slug] || [])
+                .filter(name => typeof name === 'string' && name.trim())
+                .map(fileName => ({
+                    label: fileName,
+                    file: `./assets/experience/${slug}/evidences/${encodeURIComponent(fileName)}`
+                }));
+
+        function renderExperienceEvidence(entry, container) {
+            if (!container) return;
+
+            if (entry.evidence && entry.evidence.length) {
+                container.innerHTML = `
+                    <div class="experience-evidence-title">Evidence &amp; Documentation</div>
+                    <div class="experience-evidence-actions">
+                        ${entry.evidence.map(item => `
+                            <a class="btn btn-ghost btn-sm"
+                               href="${item.file}"
+                               target="_blank"
+                               rel="noopener">
+                               ${item.label} ↗
+                            </a>
+                        `).join('')}
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="experience-evidence-title">Evidence &amp; Documentation</div>
+                <div class="experience-evidence-empty">
+                    Add the exact document filenames to
+                    <strong>EXPERIENCE_EVIDENCE_FILES['${entry.slug}']</strong>
+                    in this file.
+                </div>`;
+        }
 
         const PROJECTS = [
             {
@@ -4884,7 +5022,7 @@ MOBILE
                 challenges: 'Keeping responses coherent across turns without a full dialogue-state framework.',
                 results: 'A working prototype demonstrating intent matching and response generation.',
                 learnings: 'Why production conversational AI needs far more state management than a first prototype suggests.',
-                images: projectImages('chatbot',1)
+                images: projectImages('chatbot', 1)
             },
             {
                 slug: 'autonomous-hackathon',
@@ -4911,68 +5049,87 @@ MOBILE
         const EXPERIENCE = [
             {
                 company: 'Thaejus Aerodyne', role: 'Artificial Intelligence Intern', date: 'Aug 2026 – Present', loc: 'Bengaluru', current: true,
+                slug: 'thaejus-aerodyne',
                 detail: 'Ongoing AI internship focused on applying machine learning to real engineering problems.',
                 images: experienceImages('thaejus-aerodyne'),
+                evidence: experienceEvidence('thaejus-aerodyne')
             },
             {
                 company: 'Codec Technologies India', role: 'Project Intern', date: 'Jun 2026 – Sep 2026', loc: 'Bangalore Urban',
+                slug: 'codec-technologies-india',
                 detail: 'Project-based internship contributing to technical deliverables.',
                 images: experienceImages('codec-technologies-india'),
+                evidence: experienceEvidence('codec-technologies-india')
             },
             {
                 company: 'InAmigos Foundation (IAF)', role: 'Data Analyst', date: 'Jun 2026 – Jul 2026', loc: 'India',
-                detail: 'Data analysis work supporting the foundation\'s initiatives.',
+                slug: 'inamigos-foundation',
+                detail: 'Data analysis work supporting the foundation’s initiatives.',
                 images: experienceImages('inamigos-foundation'),
+                evidence: experienceEvidence('inamigos-foundation')
             },
             {
                 company: 'ApexPlanet Software Pvt Ltd', role: 'Intern', date: 'Mar 2026 – May 2026', loc: 'Bengaluru',
+                slug: 'apexplanet-software',
                 detail: 'Software internship contributing to applied development work.',
                 images: experienceImages('apexplanet-software'),
+                evidence: experienceEvidence('apexplanet-software')
             },
             {
                 company: 'India Space Week', role: 'Project Intern', date: 'Feb 2026 – Mar 2026', loc: 'Bangalore Urban',
+                slug: 'india-space-week',
                 detail: 'Project internship contributing to India Space Week initiatives.',
                 images: experienceImages('india-space-week'),
+                evidence: experienceEvidence('india-space-week')
             },
             {
-                company: 'Elevate Labs', role: 'AI &amp; Machine Learning Intern', date: 'Feb 2026 – Mar 2026', loc: 'Bangalore Urban',
+                company: 'Elevate Labs', role: 'AI & Machine Learning Intern', date: 'Feb 2026 – Mar 2026', loc: 'Bangalore Urban',
+                slug: 'elevate-labs',
                 detail: 'Built end-to-end ML projects spanning supervised learning, unsupervised learning and NLP.',
                 bullets: ['Implemented Linear/Logistic Regression, Decision Trees, Random Forest, KNN, SVM and K-Means Clustering',
                     'Delivered Fake News Detection (NLP, ~98% accuracy), Breast Cancer Classification (SVM) and Customer Segmentation (K-Means)',
                     'Worked across data cleaning, feature engineering, model evaluation and result visualization using Python, Pandas, NumPy, Scikit-learn, Matplotlib and NLTK',
                     'Documented projects and published GitHub repositories for each'],
                 images: experienceImages('elevate-labs'),
+                evidence: experienceEvidence('elevate-labs')
             },
             {
                 company: 'YHills', role: 'Internet of Things Intern', date: 'Jan 2026 – Mar 2026', loc: 'Bengaluru',
+                slug: 'yhills',
                 detail: 'Completed a 2-month Industrial IoT traineeship covering sensors, data acquisition and system integration.',
                 bullets: ['Worked on two live IoT projects, one minor and one major', 'Gained hands-on exposure to IoT architecture, sensors and data acquisition', 'Developed hardware-software integration and real-time monitoring skills'],
                 images: experienceImages('yhills'),
+                evidence: experienceEvidence('yhills')
             },
             {
                 company: 'Bharat Space Education Research Centre', role: 'Project Intern', date: 'Dec 2025 – Jan 2026', loc: 'Bengaluru',
+                slug: 'bharat-space-education-research-centre',
                 detail: 'Project internship contributing to space-education research initiatives.',
                 images: experienceImages('bharat-space-education-research-centre'),
+                evidence: experienceEvidence('bharat-space-education-research-centre')
             },
             {
                 company: 'Future Interns', role: 'Machine Learning Intern', date: 'Nov 2025 – Dec 2025', loc: 'Bengaluru',
+                slug: 'future-interns',
                 detail: 'Hands-on ML projects developing skills in algorithms, data analysis and model building.',
                 images: experienceImages('future-interns'),
+                evidence: experienceEvidence('future-interns')
             },
             {
                 company: 'Redynox', role: 'Cybersecurity Intern', date: 'Oct 2025 – Nov 2025', loc: 'Bengaluru',
+                slug: 'redynox',
                 detail: 'Explored network security fundamentals and conducted vulnerability analysis on intentionally vulnerable applications.',
                 bullets: ['Analyzed network traffic with Wireshark and studied firewalls, encryption and threat detection', 'Scanned WebGoat with OWASP ZAP, identifying SQL Injection, XSS and CSRF vulnerabilities', 'Implemented basic security configurations for small and large-scale networks'],
                 images: experienceImages('redynox'),
+                evidence: experienceEvidence('redynox')
             },
             {
                 company: 'Lohia Corp Limited',
                 role: 'Electrical Design & Commissioning Intern',
                 date: 'May 2025 – Jun 2025',
                 loc: 'Bangalore Urban',
-
+                slug: 'lohia-corp-limited',
                 detail: 'Worked in the Electrical Design department on the commissioning of industrial lamination and printing machinery, with hands-on exposure to control panels, Mitsubishi drives, PLC systems, HMI, sensors and troubleshooting.',
-
                 bullets: [
                     'Contributed to commissioning of the lamination & printing machine control panel',
                     'Configured and fine-tuned Mitsubishi drives and VFD parameters',
@@ -4981,27 +5138,8 @@ MOBILE
                     'Studied HMI interfaces, PLC logic and electrical control-system documentation',
                     'Developed practical understanding of industrial automation and machine commissioning'
                 ],
-
-                images: [
-                    './assets/experience/lohia_corp/photos/myphoto.jpeg',
-                    './assets/experience/lohia_corp/photos/myphoto2.jpeg',
-                    './assets/experience/lohia_corp/photos/myphoto3.jpeg'
-                ],
-
-                evidence: [
-                    {
-                        label: 'Internship Certificate',
-                        file: './assets/experience/lohia_corp/Certificate.pdf'
-                    },
-                    {
-                        label: 'Internship Report',
-                        file: './assets/experience/lohia_corp/Internship%20Report%20f.pdf'
-                    },
-                    {
-                        label: 'Internship Presentation',
-                        file: './assets/experience/lohia_corp/Final%20Intern.pptx'
-                    }
-                ]
+                images: experienceImages('lohia-corp-limited', 3),
+                evidence: experienceEvidence('lohia-corp-limited', 3)
             }
         ];
 
@@ -5577,51 +5715,74 @@ MOBILE
         EXPERIENCE.forEach((e, i) => {
             const item = document.createElement('div');
             item.className = 'tl-item' + (e.current ? ' current' : '');
+            item.dataset.experienceSlug = e.slug;
             item.innerHTML = `
     <div class="tl-dot"></div>
     <div class="tl-date">${e.date} · ${e.loc}</div>
+
     <div class="tl-content-grid">
         <div class="tl-details">
             <div class="tl-head" data-toggle>
-                <div class="experience-open-target" role="button" tabindex="0" aria-label="Open ${e.role} evidence">
-                    <h4>${e.role}</h4><div class="role-loc">${e.company}</div>
-                    <div class="experience-open-hint">Open experience ↗</div>
+                <div class="experience-open-target" role="button" tabindex="0"
+                     aria-label="Expand ${e.company} experience">
+                    <h4>${e.role}</h4>
+                    <div class="role-loc">${e.company}</div>
+                    <div class="experience-open-hint">View experience, photos &amp; evidence ↗</div>
                 </div>
+                <div class="tl-toggle" aria-hidden="true">+</div>
             </div>
+
             <div class="tl-body">
                 <div class="tl-body-inner">
-                    <p>${e.detail}</p>
-                    ${e.bullets ? `<ul>${e.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
-                    ${e.evidence ? `<div class="experience-evidence"><div class="experience-evidence-title">Evidence &amp; Documentation</div><div class="experience-evidence-actions">${e.evidence.map(item => `<a class="btn btn-ghost btn-sm" href="${item.file}" target="_blank" rel="noopener">${item.label} ↗</a>`).join('')}</div></div>` : ''}
+                    <p>${e.detail || ''}</p>
+                    ${e.bullets?.length ? `<ul>${e.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
+
+                    <div class="experience-evidence" data-experience-evidence></div>
                 </div>
             </div>
         </div>
-        ${e.images && e.images.length ? `<div class="experience-gallery" data-experience-gallery><div class="experience-gallery-frame" data-experience-gallery-frame><div class="experience-gallery-placeholder" data-experience-gallery-placeholder>Evidence photos · Add images to the experience folder (01.png, 02.png, 03.png …)</div></div><div class="experience-gallery-controls"><button class="experience-gallery-btn" type="button" data-gallery-prev aria-label="Previous photo">←</button><span class="experience-gallery-counter" data-gallery-counter>0 / 0</span><button class="experience-gallery-btn" type="button" data-gallery-next aria-label="Next photo">→</button></div></div>` : ''}
+
+        ${e.images?.length ? `
+        <div class="experience-gallery" data-experience-gallery>
+            <div class="experience-gallery-frame" data-experience-gallery-frame>
+                <div class="experience-gallery-placeholder" data-experience-gallery-placeholder>
+                    Loading evidence photos from
+                    <strong>assets/experience/${e.slug}/images/</strong>
+                </div>
+            </div>
+            <div class="experience-gallery-controls">
+                <button class="experience-gallery-btn" type="button"
+                        data-gallery-prev aria-label="Previous photo">←</button>
+                <span class="experience-gallery-counter" data-gallery-counter>0 / 0</span>
+                <button class="experience-gallery-btn" type="button"
+                        data-gallery-next aria-label="Next photo">→</button>
+            </div>
+        </div>` : ''}
     </div>
 `;
 
-            const experienceOpenTarget = item.querySelector('.tl-head');
-            const openExperienceEntry = () => {
-                const galleryImages = item.__experienceLoadedImages || [];
-                if (galleryImages.length) openExperienceLightbox(galleryImages, item.__experienceCurrent || 0, e);
-                else if (e.images?.length) openExperienceLightbox(e.images.map((src, index) => ({ src, alt: `${e.company} — ${e.role} evidence image ${index + 1}` })), 0, e);
+            const tlHead = item.querySelector('.tl-head');
+            const openTarget = item.querySelector('.experience-open-target');
+            const toggle = item.querySelector('.tl-toggle');
+
+            const toggleExperience = () => {
+                const isOpen = item.classList.toggle('open');
+                toggle.textContent = isOpen ? '−' : '+';
             };
 
-            experienceOpenTarget?.addEventListener('click', event => {
+            tlHead?.addEventListener('click', event => {
                 if (event.target.closest('a, button')) return;
-                event.stopPropagation();
-                openExperienceEntry();
+                toggleExperience();
             });
 
-            item.querySelector('.experience-open-target')?.addEventListener('keydown', event => {
+            openTarget?.addEventListener('keydown', event => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    event.stopPropagation();
-                    openExperienceEntry();
+                    toggleExperience();
                 }
             });
 
-            if (e.images && e.images.length) {
+            if (e.images?.length) {
                 const frame = item.querySelector('[data-experience-gallery-frame]');
                 const placeholder = item.querySelector('[data-experience-gallery-placeholder]');
                 const counter = item.querySelector('[data-gallery-counter]');
@@ -5633,40 +5794,107 @@ MOBILE
                 function renderGallery() {
                     item.__experienceLoadedImages = loaded;
                     item.__experienceCurrent = current;
+
                     if (!loaded.length) {
                         counter.textContent = '0 / 0';
-                        prev.disabled = true; next.disabled = true;
+                        prev.disabled = true;
+                        next.disabled = true;
+                        placeholder.innerHTML = `
+                            No evidence photos found yet.<br>
+                            Add <strong>01.png, 02.png, 03.png …</strong> to
+                            <strong>assets/experience/${e.slug}/images/</strong>
+                        `;
                         placeholder.style.display = '';
                         frame.querySelectorAll('img[data-experience-gallery-image]').forEach(img => img.remove());
                         return;
                     }
+
                     current = (current + loaded.length) % loaded.length;
                     item.__experienceCurrent = current;
+
                     placeholder.style.display = 'none';
                     frame.querySelectorAll('img[data-experience-gallery-image]').forEach(img => img.remove());
+
                     const img = document.createElement('img');
                     img.dataset.experienceGalleryImage = '1';
                     img.src = loaded[current].src;
                     img.alt = loaded[current].alt;
-                    img.addEventListener('click', event => { event.stopPropagation(); openExperienceLightbox(loaded, current, e); });
+
+                    img.addEventListener('click', event => {
+                        event.stopPropagation();
+                        openExperienceLightbox(loaded, current, e);
+                    });
+
                     frame.insertBefore(img, frame.firstChild);
+
                     counter.textContent = `${current + 1} / ${loaded.length}`;
-                    prev.disabled = loaded.length < 2; next.disabled = loaded.length < 2;
+                    prev.disabled = loaded.length < 2;
+                    next.disabled = loaded.length < 2;
                 }
 
-                e.images.forEach(src => {
-                    const tester = new Image();
-                    tester.onload = () => { loaded.push({ src, alt: `${e.company} — ${e.role} evidence image ${loaded.length + 1}` }); renderGallery(); };
-                    tester.onerror = () => { };
-                    tester.src = src;
+                function testImage(src) {
+                    return new Promise(resolve => {
+                        const tester = new Image();
+                        tester.onload = () => resolve(src);
+                        tester.onerror = () => resolve(null);
+                        tester.src = src;
+                    });
+                }
+
+                async function loadExperienceGallery() {
+                    const max = e.images.length;
+                    let misses = 0;
+
+                    for (let i = 1; i <= max; i++) {
+                        const n = String(i).padStart(2, '0');
+                        const candidates = [
+                            `./assets/experience/${e.slug}/images/${n}.png`,
+                            `./assets/experience/${e.slug}/images/${n}.jpg`,
+                            `./assets/experience/${e.slug}/images/${n}.jpeg`
+                        ];
+
+                        let found = null;
+
+                        for (const candidate of candidates) {
+                            found = await testImage(candidate);
+                            if (found) break;
+                        }
+
+                        if (found) {
+                            loaded.push({
+                                src: found,
+                                alt: `${e.company} — ${e.role} evidence image ${loaded.length + 1}`
+                            });
+                            misses = 0;
+                            renderGallery();
+                        } else {
+                            misses++;
+                            if (misses >= 2) break;
+                        }
+                    }
+
+                    renderGallery();
+                }
+
+                prev.addEventListener('click', event => {
+                    event.stopPropagation();
+                    if (!loaded.length) return;
+                    current--;
+                    renderGallery();
                 });
 
-                prev.addEventListener('click', event => { event.stopPropagation(); if (!loaded.length) return; current--; renderGallery(); });
-                next.addEventListener('click', event => { event.stopPropagation(); if (!loaded.length) return; current++; renderGallery(); });
-                renderGallery();
+                next.addEventListener('click', event => {
+                    event.stopPropagation();
+                    if (!loaded.length) return;
+                    current++;
+                    renderGallery();
+                });
+
+                loadExperienceGallery();
             }
 
             timelineList.appendChild(item);
+            renderExperienceEvidence(e, item.querySelector('[data-experience-evidence]'));
         });
 
         /* ========================================================
