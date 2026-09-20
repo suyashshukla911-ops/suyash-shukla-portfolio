@@ -74,6 +74,10 @@
             overflow-x: hidden;
         }
 
+        body.aerostrike-open {
+            overflow: hidden;
+        }
+
         img,
         canvas {
             max-width: 100%;
@@ -1426,6 +1430,243 @@ MOBILE
 
             .system-line {
                 display: none;
+            }
+        }
+
+        /* ================= SOFTWARE → AEROSTRIKE ================= */
+        /* Hover/focus hint floats above the SOFTWARE box without changing
+           the system-stack layout or causing any reflow. */
+        .system-node-software {
+            z-index: 5;
+        }
+
+        .software-play-hint {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 12px);
+            transform: translate(-50%, 6px);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 11px;
+            border: 1px solid rgba(47, 127, 120, .42);
+            border-radius: 10px;
+            background: rgba(248, 243, 234, .96);
+            color: var(--text-primary);
+            box-shadow: 0 12px 28px rgba(75, 58, 37, .14), 0 2px 10px rgba(47, 127, 120, .08);
+            backdrop-filter: blur(12px);
+            white-space: nowrap;
+            font: 600 .65rem var(--font-mono);
+            letter-spacing: .08em;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+        }
+
+        .software-play-hint::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            width: 10px;
+            height: 10px;
+            transform: translateX(-50%) rotate(45deg);
+            background: rgba(248, 243, 234, .96);
+            border-right: 1px solid rgba(47, 127, 120, .24);
+            border-bottom: 1px solid rgba(47, 127, 120, .24);
+        }
+
+        .software-play-hint-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 0 4px rgba(47, 127, 120, .08);
+            flex: 0 0 auto;
+        }
+
+        .software-play-hint-arrow {
+            color: var(--cyan);
+            font-size: .8rem;
+            line-height: 1;
+        }
+
+        .system-node-software:hover .software-play-hint,
+        .system-node-software:focus-visible .software-play-hint {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+        }
+
+        /* Keep the hint usable on narrow screens without affecting the row. */
+        @media (max-width: 760px) {
+            .software-play-hint {
+                left: 50%;
+                bottom: calc(100% + 10px);
+                padding: 7px 10px;
+                font-size: .60rem;
+            }
+        }
+
+        /* AeroStrike modal. Hidden until SOFTWARE is clicked. */
+        .aerostrike-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            display: grid;
+            place-items: center;
+            padding: clamp(12px, 3vw, 34px);
+            background: rgba(43, 41, 37, .62);
+            backdrop-filter: blur(12px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .22s ease, visibility .22s ease;
+        }
+
+        .aerostrike-modal.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        /* Performance mode while AeroStrike is active: keep the portfolio
+           visually present but stop expensive background compositing. */
+        body.aerostrike-open .aerostrike-modal {
+            backdrop-filter: none;
+            background: rgba(43, 41, 37, .76);
+        }
+
+        body.aerostrike-open .aerostrike-frame-wrap {
+            contain: strict;
+            isolation: isolate;
+        }
+
+        body.aerostrike-open .hero-bg canvas {
+            visibility: hidden;
+        }
+
+        .aerostrike-dialog {
+            width: min(980px, 100%);
+            height: min(900px, 92vh);
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface-800);
+            box-shadow: 0 34px 100px rgba(45, 36, 24, .30);
+            transform: translateY(14px) scale(.985);
+            transition: transform .24s ease;
+        }
+
+        .aerostrike-modal.open .aerostrike-dialog {
+            transform: translateY(0) scale(1);
+        }
+
+        .aerostrike-toolbar {
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 14px 10px 18px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(248, 243, 234, .92);
+        }
+
+        .aerostrike-title-wrap {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .aerostrike-status {
+            width: 7px;
+            height: 7px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 0 4px rgba(47, 127, 120, .08);
+        }
+
+        .aerostrike-title {
+            font: 600 .74rem var(--font-mono);
+            letter-spacing: .09em;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .aerostrike-close {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
+        }
+
+        .aerostrike-close:hover,
+        .aerostrike-close:focus-visible {
+            color: var(--cyan);
+            border-color: var(--cyan);
+            background: rgba(47, 127, 120, .06);
+            transform: rotate(90deg);
+            outline: none;
+        }
+
+        .aerostrike-frame-wrap {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            background: #05070c;
+        }
+
+        .aerostrike-frame {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: 0;
+            background: #05070c;
+        }
+
+        @media (max-width: 760px) {
+            .aerostrike-modal {
+                padding: 0;
+            }
+
+            .aerostrike-dialog {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+                border-left: 0;
+                border-right: 0;
+            }
+
+            .aerostrike-toolbar {
+                min-height: 54px;
+                padding-left: 14px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .software-play-hint,
+            .aerostrike-modal,
+            .aerostrike-dialog,
+            .aerostrike-close {
+                transition: none !important;
             }
         }
 
@@ -4846,6 +5087,27 @@ MOBILE
         </div>
     </div>
 
+    <!-- ============ AEROSTRIKE PINBALL MODAL ============ -->
+    <!-- The game remains the original Python/Pygame build; this iframe only loads
+         the pygbag browser build when the SOFTWARE node is clicked. -->
+    <div class="aerostrike-modal" id="aerostrikeModal" aria-hidden="true">
+        <div class="aerostrike-dialog" role="dialog" aria-modal="true" aria-labelledby="aerostrikeTitle">
+            <div class="aerostrike-toolbar">
+                <div class="aerostrike-title-wrap">
+                    <span class="aerostrike-status" aria-hidden="true"></span>
+                    <div class="aerostrike-title" id="aerostrikeTitle">AEROSTRIKE PINBALL · SOFTWARE</div>
+                </div>
+                <button class="aerostrike-close" id="aerostrikeClose" type="button"
+                    aria-label="Close AeroStrike Pinball">×</button>
+            </div>
+            <div class="aerostrike-frame-wrap">
+                <iframe class="aerostrike-frame" id="aerostrikeFrame" title="AeroStrike Pinball"
+                    data-src="games/aerostrike/build/web/index.html" allow="autoplay; fullscreen" allowfullscreen
+                    loading="lazy"></iframe>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ HERO ============ -->
     <section class="hero" id="top">
         <div class="hero-bg"><canvas id="heroCanvas"></canvas></div>
@@ -4860,9 +5122,15 @@ MOBILE
                     </div>
 
                     <div class="system-flow">
-                        <button class="system-node" data-system="software" type="button">
+                        <button class="system-node system-node-software" data-system="software" type="button"
+                            aria-label="Software — click to play AeroStrike Pinball">
                             <span class="system-dot"></span>
-                            SOFTWARE
+                            <span>SOFTWARE</span>
+                            <span class="software-play-hint" aria-hidden="true">
+                                <span class="software-play-hint-dot"></span>
+                                <span>CLICK TO PLAY</span>
+                                <span class="software-play-hint-arrow">↗</span>
+                            </span>
                         </button>
 
                         <span class="system-line">→</span>
@@ -6247,10 +6515,12 @@ MOBILE
             document.body.classList.add('cursor-ready');
             window.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; if (portrait && !reduced) { const r = portrait.getBoundingClientRect(); if (r.width) { const rx = ((e.clientX - r.left) / r.width - .5) * 2; const ry = ((e.clientY - r.top) / r.height - .5) * 2; const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; if (inside) { px = rx * 4; py = ry * 4; } else { px *= .94; py *= .94; } } } });
             function tick() {
-                cx += (mx - cx) * .18; cy += (my - cy) * .18;
-                cursor.style.transform = `translate3d(${cx}px,${cy}px,0) translate(-50%,-50%)`;
-                dot.style.transform = `translate3d(${mx}px,${my}px,0) translate(-50%,-50%)`;
-                if (portrait && !reduced) portrait.style.transform = `perspective(900px) rotateX(${-py}deg) rotateY(${px}deg) translateZ(0)`;
+                if (!window.aeroStrikeGameOpen) {
+                    cx += (mx - cx) * .18; cy += (my - cy) * .18;
+                    cursor.style.transform = `translate3d(${cx}px,${cy}px,0) translate(-50%,-50%)`;
+                    dot.style.transform = `translate3d(${mx}px,${my}px,0) translate(-50%,-50%)`;
+                    if (portrait && !reduced) portrait.style.transform = `perspective(900px) rotateX(${-py}deg) rotateY(${px}deg) translateZ(0)`;
+                }
                 requestAnimationFrame(tick);
             }
             tick();
@@ -7250,6 +7520,10 @@ MOBILE
                 }
             }
             function step() {
+                if (window.aeroStrikeGameOpen) {
+                    requestAnimationFrame(step);
+                    return;
+                }
                 ctx.clearRect(0, 0, w, h);
                 // connections
                 for (let i = 0; i < nodes.length; i++) {
@@ -7391,16 +7665,94 @@ MOBILE
             });
         })();
         /* ========================================================
-           SYSTEM STACK — VISUAL / ACTIVE STATE ONLY
-           The four domains remain interactive visually, but intentionally
-           do not open detail content yet.
+           SYSTEM STACK
+           SOFTWARE opens AeroStrike; the other three domains retain their
+           existing visual active-state behavior.
            ======================================================== */
         const systemNodes = document.querySelectorAll('.system-node');
+        const softwareNode = document.querySelector('.system-node-software');
+        const aerostrikeModal = document.getElementById('aerostrikeModal');
+        const aerostrikeFrame = document.getElementById('aerostrikeFrame');
+        const aerostrikeClose = document.getElementById('aerostrikeClose');
+
+        let aerostrikeLastFocused = null;
+
+        function openAeroStrike() {
+            if (!aerostrikeModal || !aerostrikeFrame) return;
+
+            aerostrikeLastFocused = document.activeElement;
+
+            /*
+             * Pygbag's generated page needs to be served over HTTP(S).
+             * When the portfolio is opened directly as file://, Chromium gives
+             * the game a null origin and the pygbag runtime can render only its
+             * loading shell. In that local-development case, use the already
+             * working pygbag test server. On HTTP(S) hosting (Live Server,
+             * GitHub Pages, etc.), use the normal same-origin relative build.
+             */
+            const localFileFallback = 'http://127.0.0.1:8080/';
+            const gamePath = aerostrikeFrame.dataset.src || 'games/aerostrike/build/web/index.html';
+
+            let gameUrl = gamePath;
+            if (window.location.protocol === 'file:') {
+                gameUrl = localFileFallback;
+            } else {
+                gameUrl = new URL(gamePath, document.baseURI).href;
+            }
+
+            if (aerostrikeFrame.getAttribute('src') !== gameUrl) {
+                aerostrikeFrame.setAttribute('src', gameUrl);
+            }
+
+            aerostrikeModal.classList.add('open');
+            aerostrikeModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('aerostrike-open');
+
+            window.aeroStrikeGameOpen = true;
+            window.setTimeout(() => aerostrikeClose?.focus(), 0);
+        }
+
+        function closeAeroStrike() {
+            if (!aerostrikeModal || !aerostrikeFrame) return;
+
+            aerostrikeModal.classList.remove('open');
+            aerostrikeModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('aerostrike-open');
+            window.aeroStrikeGameOpen = false;
+
+            // Return the frame to a same-document blank page so the browser
+            // does not navigate away from the portfolio context.
+            aerostrikeFrame.src = 'about:blank';
+
+            if (aerostrikeLastFocused && typeof aerostrikeLastFocused.focus === 'function') {
+                aerostrikeLastFocused.focus();
+            }
+        }
+
         systemNodes.forEach(node => {
             node.addEventListener('click', () => {
                 systemNodes.forEach(item => item.classList.remove('active'));
+
+                if (node === softwareNode) {
+                    // SOFTWARE does not stay highlighted; it simply launches the game.
+                    openAeroStrike();
+                    return;
+                }
+
                 node.classList.add('active');
             });
+        });
+
+        aerostrikeClose?.addEventListener('click', closeAeroStrike);
+
+        aerostrikeModal?.addEventListener('click', event => {
+            if (event.target === aerostrikeModal) closeAeroStrike();
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && aerostrikeModal?.classList.contains('open')) {
+                closeAeroStrike();
+            }
         });
 
         document.querySelectorAll('a[download="Suyash-Shukla-Resume.pdf"]').forEach(link => {
