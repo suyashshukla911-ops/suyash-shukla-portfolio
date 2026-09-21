@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ChessMind AI</title>
+  <style>
+    :root {
+      --bg: #f2ebdd;
+      --surface: #fbf7ef;
+      --border: #cdbfa9;
+      --text: #2b2925;
+      --muted: #665f55;
+      --cyan: #2f7f78;
+      --dark: #8e9a91;
+      --light: #eadfcb
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif
+    }
+
+    body {
+      padding: 18px
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      margin: auto
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 14px
+    }
+
+    .title {
+      font: 700 1.55rem/1.1 'Space Grotesk', sans-serif
+    }
+
+    .mono {
+      font: 600 .68rem/1.5 'JetBrains Mono', monospace;
+      letter-spacing: .08em
+    }
+
+    .status {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      border-radius: 999px
+    }
+
+    .status.ok {
+      color: var(--cyan);
+      border-color: var(--cyan)
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 16px
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .board-wrap {
+      padding: 16px
+    }
+
+    .board {
+      width: min(680px, 100%);
+      margin: auto;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .sq {
+      border: 0;
+      padding: 0;
+      font-size: clamp(28px, 6vw, 60px);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      position: relative
+    }
+
+    .sq.light {
+      background: var(--light)
+    }
+
+    .sq.dark {
+      background: var(--dark)
+    }
+
+    .sq.selected {
+      outline: 4px solid rgba(47, 127, 120, .75);
+      outline-offset: -4px
+    }
+
+    .sq.target:after {
+      content: '';
+      width: 22%;
+      height: 22%;
+      border-radius: 50%;
+      background: rgba(47, 127, 120, .55);
+      position: absolute
+    }
+
+    .sq.capture:after {
+      content: '';
+      position: absolute;
+      inset: 9%;
+      border: 4px solid rgba(47, 127, 120, .6);
+      border-radius: 50%
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 8px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 600
+    }
+
+    .btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan)
+    }
+
+    .btn.primary {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: #fff
+    }
+
+    .bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+      color: var(--muted)
+    }
+
+    aside {
+      padding: 16px
+    }
+
+    .label {
+      color: var(--muted);
+      font: 600 .65rem 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em
+    }
+
+    .value {
+      font: 700 1.55rem 'Space Grotesk', sans-serif;
+      margin-top: 3px
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 14px 0
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font: .6rem 'JetBrains Mono', monospace;
+      text-transform: uppercase
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 4px;
+      font: .78rem 'JetBrains Mono', monospace
+    }
+
+    .field {
+      margin: 9px 0
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font: .62rem 'JetBrains Mono', monospace;
+      margin-bottom: 5px
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fffaf2
+    }
+
+    .pv,
+    .history,
+    .message {
+      font: .7rem/1.7 'JetBrains Mono', monospace;
+      color: var(--muted);
+      word-break: break-word
+    }
+
+    .history {
+      max-height: 180px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px
+    }
+
+    .section {
+      border-top: 1px solid var(--border);
+      margin-top: 14px;
+      padding-top: 14px
+    }
+
+    @media(max-width:860px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+    }
+
+    /* UI clarity upgrades */
+    .sq.last-from,
+    .sq.last-to {
+      box-shadow: inset 0 0 0 999px rgba(118, 101, 155, .24) !important
+    }
+
+    .sq.selected {
+      box-shadow: inset 0 0 0 4px rgba(47, 127, 120, .95) !important
+    }
+
+    .piece {
+      font-family: "Segoe UI Symbol", "Arial Unicode MS", "DejaVu Serif", serif;
+      font-variant-emoji: text;
+      line-height: 1;
+      position: relative;
+      z-index: 2
+    }
+
+    .piece.white {
+      color: #fff;
+      -webkit-text-stroke: 1.5px #5d5a54;
+      text-shadow: 0 2px 2px rgba(0, 0, 0, .25)
+    }
+
+    .piece.black {
+      color: #050505;
+      -webkit-text-stroke: .5px #050505;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, .35)
+    }
+
+    .sq::before {
+      position: absolute;
+      z-index: 3;
+      pointer-events: none;
+      color: rgba(43, 41, 37, .56);
+      font: 600 10px 'JetBrains Mono', monospace
+    }
+
+    .sq.file::before {
+      content: attr(data-file);
+      right: 6px;
+      bottom: 4px;
+    }
+
+    .sq.rank::before {
+      content: attr(data-rank);
+      left: 5px;
+      top: 4px;
+    }
+
+    .lastmove {
+      margin-top: 8px;
+      font: 600 .68rem/1.5 'JetBrains Mono', monospace;
+      color: var(--text);
+    }
+
+    .turnbar {
+      display: grid !important;
+      grid-template-columns: auto 1fr !important;
+      gap: 14px !important;
+      align-items: center !important
+    }
+
+    .lastmove {
+      margin-top: 8px;
+      font: 600 .68rem/1.5 'JetBrains Mono', monospace;
+      color: var(--text)
+    }
+
+    .history {
+      max-height: 225px !important;
+      background: #fffaf2
+    }
+
+    .move-row {
+      display: grid;
+      grid-template-columns: 34px 1fr 1fr;
+      gap: 5px;
+      padding: 5px 6px;
+      border-radius: 6px;
+      font: .72rem 'JetBrains Mono', monospace
+    }
+
+    .move-row.latest {
+      background: rgba(47, 127, 120, .12);
+      outline: 1px solid rgba(47, 127, 120, .18)
+    }
+
+    .result-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(43, 41, 37, .58);
+      backdrop-filter: blur(9px);
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 50;
+      padding: 18px
+    }
+
+    .result-overlay.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto
+    }
+
+    .result-card {
+      width: min(440px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 28px 80px rgba(45, 36, 24, .28);
+      padding: 28px;
+      text-align: center;
+      transform: translateY(12px) scale(.98);
+      transition: .22s ease
+    }
+
+    .result-overlay.open .result-card {
+      transform: none
+    }
+
+    .result-kicker {
+      font: 600 .66rem 'JetBrains Mono', monospace;
+      letter-spacing: .1em;
+      color: var(--cyan);
+      text-transform: uppercase
+    }
+
+    .result-title {
+      font: 700 clamp(2.3rem, 8vw, 3.8rem)/1 'Space Grotesk', sans-serif;
+      margin: 10px 0
+    }
+
+    .result-text {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 18px
+    }
+
+    .result-card.win .result-title {
+      color: var(--cyan)
+    }
+
+    .result-card.lose .result-title {
+      color: #9d4c50
+    }
+
+    .result-card.draw .result-title {
+      color: var(--text)
+    }
+
+    /* Clear chess-state feedback */
+    :root {
+      --danger: #a3484f;
+      --check-bg: #f8e8e5
+    }
+
+    .state-alert {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid rgba(163, 72, 79, .38);
+      border-radius: 10px;
+      background: var(--check-bg);
+      color: var(--danger);
+      font: 600 .68rem/1.55 'JetBrains Mono', monospace
+    }
+
+    .state-alert.open {
+      display: block
+    }
+
+    .state-alert strong {
+      letter-spacing: .07em
+    }
+
+    .sq.last-from,
+    .sq.last-to {
+      position: relative;
+      box-shadow: inset 0 0 0 999px rgba(118, 101, 155, .26), inset 0 0 0 3px rgba(118, 101, 155, .72) !important
+    }
+
+    .sq.last-to {
+      box-shadow: inset 0 0 0 999px rgba(47, 127, 120, .18), inset 0 0 0 3px rgba(47, 127, 120, .88) !important
+    }
+
+    .sq.check-king {
+      box-shadow: inset 0 0 0 4px rgba(163, 72, 79, .92) !important;
+      animation: checkPulse 1s ease-in-out infinite
+    }
+
+    @keyframes checkPulse {
+
+      0%,
+      100% {
+        filter: brightness(1)
+      }
+
+      50% {
+        filter: brightness(.94)
+      }
+    }
+
+    .move-marker {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      padding: 2px 5px;
+      border-radius: 999px;
+      background: rgba(43, 41, 37, .8);
+      color: #fff;
+      font: 700 8px 'JetBrains Mono', monospace;
+      letter-spacing: .06em;
+      pointer-events: none
+    }
+
+    .sq.last-to .move-marker {
+      background: var(--cyan)
+    }
+
+    .piece.white {
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      -webkit-text-stroke: 1.4px #4b473f;
+      text-shadow: -1px -1px 0 #4b473f, 1px -1px 0 #4b473f, -1px 1px 0 #4b473f, 1px 1px 0 #4b473f, 0 3px 5px rgba(0, 0, 0, .18)
+    }
+
+    .piece.black {
+      color: #050505;
+      -webkit-text-fill-color: #050505;
+      -webkit-text-stroke: .4px #050505;
+      text-shadow: 0 2px 2px rgba(255, 255, 255, .22)
+    }
+
+    .selection-info {
+      margin-top: 5px;
+      color: var(--muted);
+      font: 500 .63rem 'JetBrains Mono', monospace
+    }
+
+    @media(max-width:860px) {
+      .state-alert {
+        font-size: .64rem
+      }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@500;600&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div class="app">
+    <div class="top">
+      <div>
+        <div class="title">ChessMind</div>
+        <div class="mono">AI CHESS INTELLIGENCE · LOCAL ENGINE</div>
+      </div>
+      <div id="status" class="status">CONNECTING</div>
+    </div>
+    <div class="layout">
+      <section class="panel board-wrap">
+        <div class="actions"><button class="btn" id="new">New game</button><button class="btn"
+            id="undo">Undo</button><button class="btn primary" id="analyze">Analyze</button></div>
+        <div id="board" class="board" aria-label="Chess board"></div>
+        <div class="bottom"><span id="turn">White to move</span><span id="message" class="message">Select a
+            piece.</span></div>
+        <div id="lastMove" class="lastmove">LAST MOVE · —</div>
+        <div id="stateAlert" class="state-alert" role="status" aria-live="polite"></div>
+        <div id="selectionInfo" class="selection-info"></div>
+      </section>
+      <aside class="panel">
+        <div class="label">Evaluation</div>
+        <div id="eval" class="value">—</div>
+        <div class="stats">
+          <div class="stat"><span>Depth</span><strong id="depth">—</strong></div>
+          <div class="stat"><span>Time</span><strong id="time">—</strong></div>
+          <div class="stat"><span>Nodes</span><strong id="nodes">—</strong></div>
+          <div class="stat"><span>NPS</span><strong id="nps">—</strong></div>
+          <div class="stat"><span>Best</span><strong id="best">—</strong></div>
+          <div class="stat"><span>TT hits</span><strong id="tt">—</strong></div>
+        </div>
+        <div class="section">
+          <div class="label">Search</div>
+          <div class="field"><label>AI time (ms)</label><input id="timeMs" type="number" min="100" max="120000"
+              value="1000"></div>
+          <div class="field"><label>Max depth</label><input id="maxDepth" type="number" min="1" max="18" value="8">
+          </div>
+        </div>
+        <div class="section">
+          <div class="label">Principal variation</div>
+          <div id="pv" class="pv">No analysis yet.</div>
+        </div>
+        <div class="section">
+          <div class="label">Move history</div>
+          <div id="history" class="history">No moves yet.</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <div class="result-overlay" id="resultOverlay" aria-hidden="true">
+    <div class="result-card" id="resultCard" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <div class="result-kicker">ChessMind result</div>
+      <div class="result-title" id="resultTitle">YOU WIN</div>
+      <div class="result-text" id="resultText">Game complete.</div><button class="btn primary" id="resultNew"
+        type="button">New game</button>
+    </div>
+  </div>
+  <script>
+    const API = '/api/chessmind';
+    const GLYPH = { P: '♙', N: '♘', B: '♗', R: '♖', Q: '♕', K: '♔', p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
+    const files = 'abcdefgh'; let state = null, selected = null, stack = [], busy = false, human = 'white';
+    const $ = id => document.getElementById(id);
+    function parseFen(f) { const rows = f.split(' ')[0].split('/'); const m = {}; rows.forEach((row, r) => { let c = 0; for (const ch of row) { if (/\d/.test(ch)) c += Number(ch); else { m[files[c] + (8 - r)] = ch; c++ } } }); return m }
+    async function api(path, body) { const res = await fetch(API + path, { method: body ? 'POST' : 'GET', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined }); const data = await res.json(); if (!res.ok || data.error) throw new Error(data.error || 'Request failed'); return data }
+    function sideFromPiece(piece) { return /[A-Z]/.test(piece) ? 'white' : 'black' }
+    function render() {
+      if (!state) return;
+      const m = parseFen(state.fen), b = $('board');
+      const legal = state.legal_moves || [];
+      const selectedMoves = selected ? legal.filter(x => x.slice(0, 2) === selected) : [];
+      const kingPiece = state.turn === 'white' ? 'K' : 'k';
+      const kingSq = Object.keys(m).find(sq => m[sq] === kingPiece);
+      b.innerHTML = '';
+      for (let r = 8; r >= 1; r--) {
+        for (let c = 0; c < 8; c++) {
+          const sq = files[c] + r;
+          const btn = document.createElement('button');
+          btn.className = 'sq ' + (((c + r) % 2) ? 'dark' : 'light');
+          btn.dataset.sq = sq; btn.dataset.file = files[c]; btn.dataset.rank = r;
+          if (r === 1) btn.classList.add('file');
+          if (c === 0) btn.classList.add('rank');
+          if (selected === sq) btn.classList.add('selected');
+          if (state.check && sq === kingSq) btn.classList.add('check-king');
+          if (selectedMoves.some(x => x.slice(2, 4) === sq)) btn.classList.add(m[sq] ? 'capture' : 'target');
+          if (state.last_move) {
+            if (state.last_move.slice(0, 2) === sq) btn.classList.add('last-from');
+            if (state.last_move.slice(2, 4) === sq) btn.classList.add('last-to');
+          }
+          const p = m[sq];
+          if (p) {
+            const span = document.createElement('span');
+            span.className = 'piece ' + (sideFromPiece(p) === 'white' ? 'white' : 'black');
+            span.textContent = GLYPH[p] || p;
+            btn.appendChild(span);
+          }
+          if (state.last_move && state.last_move.length >= 4) {
+            if (state.last_move.slice(0, 2) === sq || state.last_move.slice(2, 4) === sq) {
+              const marker = document.createElement('span');
+              marker.className = 'move-marker';
+              marker.textContent = state.last_move.slice(2, 4) === sq ? 'TO' : 'FROM';
+              btn.appendChild(marker);
+            }
+          }
+          btn.addEventListener('click', () => clickSq(sq));
+          b.appendChild(btn);
+        }
+      }
+
+      let turnText = state.terminal ? 'Game over' : (state.turn === 'white' ? 'White to move' : 'Black to move');
+      if (state.check && !state.terminal) turnText += ' · CHECK';
+      $('turn').textContent = turnText;
+      $('eval').textContent = state.analysis?.is_mate ? 'MATE' : state.analysis?.evaluation != null ? (state.analysis.evaluation >= 0 ? '+' : '') + Number(state.analysis.evaluation).toFixed(2) : '—';
+      $('depth').textContent = state.analysis?.depth ?? '—';
+      $('time').textContent = state.analysis ? state.analysis.elapsed_ms + ' ms' : '—';
+      $('nodes').textContent = state.analysis ? Number(state.analysis.nodes || 0).toLocaleString() : '—';
+      $('nps').textContent = state.analysis ? Number(state.analysis.nps || 0).toLocaleString() : '—';
+      $('best').textContent = state.analysis?.best_move_san || '—';
+      $('tt').textContent = state.analysis ? Number(state.analysis.tt_hits || 0).toLocaleString() : '—';
+      $('pv').textContent = state.analysis?.principal_variation?.join(' ') || 'No analysis yet.';
+      const lastSan = state.history?.length ? state.history[state.history.length - 1] : null;
+      const lastUci = state.last_move ? ` · ${state.last_move.slice(0, 2)} → ${state.last_move.slice(2, 4)}` : '';
+      $('lastMove').textContent = 'LAST MOVE · ' + (lastSan || '—') + lastUci;
+      renderHistory(state.history || []);
+
+      const alert = $('stateAlert');
+      if (state.check && !state.terminal) {
+        alert.classList.add('open');
+        alert.innerHTML = '<strong>⚠ CHECK</strong> — Your king is under attack. Only moves that remove the check are allowed.';
+      } else if (state.terminal && state.terminal_kind === 'checkmate') {
+        alert.classList.remove('open');
+      } else {
+        alert.classList.remove('open');
+        alert.textContent = '';
+      }
+
+      $('selectionInfo').textContent = selected ? `SELECTED · ${selected.toUpperCase()} · LEGAL DESTINATIONS: ${selectedMoves.length}` : '';
+      $('undo').disabled = busy || !stack.length;
+      $('analyze').disabled = busy || state.terminal;
+      $('new').disabled = busy;
+    }
+    function renderHistory(history) { const el = $('history'); if (!history.length) { el.innerHTML = '<div class="no-moves">No moves yet.</div>'; return } const rows = []; for (let i = 0; i < history.length; i += 2) { const moveNo = Math.floor(i / 2) + 1, w = history[i] || '', bl = history[i + 1] || '', latest = i >= history.length - 2; rows.push(`<div class="move-row ${latest ? 'latest' : ''}"><span class="move-no">${moveNo}.</span><span>${escapeHtml(w)}</span><span>${escapeHtml(bl)}</span></div>`) } el.innerHTML = rows.join(''); el.scrollTop = el.scrollHeight }
+    function escapeHtml(v) { return String(v).replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch])) }
+
+    async function load(fen = 'start', history = []) { state = await api('/state', { fen, history }); selected = null; render() }
+    async function newGame() { if (busy) return; closeResult(); stack = []; await load('start'); $('message').textContent = human === 'white' ? 'Your move — select a white piece.' : 'ChessMind is moving…'; if (human === 'black') await aiTurn() }
+    async function play(uci) { stack.push({ fen: state.fen, history: [...(state.history || [])] }); busy = true; try { state = await api('/play', { fen: state.fen, uci, history: state.history || [] }); selected = null; render(); if (!state.terminal && state.turn !== human) await aiTurn(); else if (state.terminal) { $('message').textContent = state.terminal_message || 'Game over.'; showResult() } else $('message').textContent = 'Your move.' } catch (e) { stack.pop(); $('message').textContent = e.message } finally { busy = false; render() } }
+    async function aiTurn() { busy = true; $('message').textContent = 'ChessMind is thinking…'; try { const a = await api('/analyze', { fen: state.fen, time_ms: Number($('timeMs').value) || 1000, depth: Number($('maxDepth').value) || 8 }); state.analysis = a; render(); if (!a.best_move_uci) { $('message').textContent = a.terminal_kind || 'No legal move.'; return } stack.push({ fen: state.fen, history: [...(state.history || [])] }); state = await api('/play', { fen: state.fen, uci: a.best_move_uci, history: state.history || [] }); state.analysis = a; render(); $('message').textContent = state.terminal ? (state.terminal_message || 'Game over.') : 'Your move.'; if (state.terminal) showResult() } catch (e) { $('message').textContent = 'AI error: ' + e.message } finally { busy = false; render() } }
+    async function clickSq(sq) {
+      if (busy || !state || state.terminal || state.turn !== human) return;
+      const m = parseFen(state.fen), p = m[sq];
+      if (selected) {
+        const move = (state.legal_moves || []).find(x => x.slice(0, 2) === selected && x.slice(2, 4) === sq);
+        if (move) { await play(move); return }
+        const own = ((human === 'white' && p && /[A-Z]/.test(p)) || (human === 'black' && p && /[a-z]/.test(p)));
+        if (own) {
+          selected = sq;
+          const count = (state.legal_moves || []).filter(x => x.slice(0, 2) === selected).length;
+          $('message').textContent = count ? (state.check ? 'Choose a move that gets your king out of check.' : 'Choose destination.') : (state.check ? 'This piece has no legal move that removes the check.' : 'This piece has no legal moves.');
+          render(); return;
+        }
+        $('message').textContent = state.check ? 'That move does not get your king out of check.' : 'That is not a legal destination.';
+        return;
+      }
+      const own = ((human === 'white' && p && /[A-Z]/.test(p)) || (human === 'black' && p && /[a-z]/.test(p)));
+      if (own) {
+        selected = sq;
+        const count = (state.legal_moves || []).filter(x => x.slice(0, 2) === selected).length;
+        $('message').textContent = count ? (state.check ? 'Choose a move that gets your king out of check.' : 'Choose destination.') : (state.check ? 'This piece has no legal move that removes the check.' : 'This piece has no legal moves.');
+        render();
+      } else {
+        selected = null;
+        $('message').textContent = 'Select one of your pieces.';
+        render();
+      }
+    }
+    async function undo() { if (busy || !stack.length) return; const snap = stack.pop(); await load(snap.fen, snap.history); $('message').textContent = 'Move undone.' }
+    async function analyze() { if (busy || !state) return; busy = true; try { const a = await api('/analyze', { fen: state.fen, time_ms: Number($('timeMs').value) || 1000, depth: Number($('maxDepth').value) || 8 }); state.analysis = a; render(); $('message').textContent = a.fallback ? 'Analysis used a defensive legal-move fallback.' : 'Analysis complete.' } catch (e) { $('message').textContent = e.message } finally { busy = false; render() } }
+    function showResult() {
+      if (!state?.terminal) return;
+      const card = $('resultCard'), title = $('resultTitle'), text = $('resultText'), overlay = $('resultOverlay');
+      card.className = 'result-card';
+      let result = 'DRAW', explanation = state.terminal_message || 'Game complete.';
+      if (state.terminal_kind === 'checkmate') {
+        const winner = state.turn === 'white' ? 'black' : 'white';
+        if (winner === human) { result = 'YOU WIN'; card.classList.add('win'); }
+        else { result = 'YOU LOSE'; card.classList.add('lose'); }
+        explanation = 'Checkmate — ' + (winner === 'white' ? 'White wins.' : 'Black wins.');
+      } else if (state.terminal_kind === 'stalemate') {
+        result = 'DRAW'; card.classList.add('draw'); explanation = 'Stalemate — neither side has a legal move.';
+      } else {
+        result = 'DRAW'; card.classList.add('draw');
+      }
+      title.textContent = result;
+      text.textContent = explanation;
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+    function closeResult() { $('resultOverlay').classList.remove('open'); $('resultOverlay').setAttribute('aria-hidden', 'true') }
+    $('new').onclick = newGame; $('undo').onclick = undo; $('analyze').onclick = analyze; $('resultNew').onclick = newGame; $('resultOverlay').addEventListener('click', e => { if (e.target.id === 'resultOverlay') closeResult() }); document.addEventListener('keydown', e => { if (e.key === 'Escape') closeResult() });
+    api('/health').then(() => { $('status').textContent = 'ENGINE READY'; $('status').classList.add('ok'); return newGame() }).catch(e => { $('status').textContent = 'SERVER OFFLINE'; $('message').textContent = e.message });
+  </script>
+</body>
+
+</html>

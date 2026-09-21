@@ -1670,6 +1670,242 @@ MOBILE
             }
         }
 
+
+        /* ================= CHESSMIND AI INTEGRATION ================= */
+        body.chessmind-open {
+            overflow: hidden;
+            cursor: default !important;
+        }
+
+        body.chessmind-open .custom-cursor,
+        body.chessmind-open .custom-cursor-dot {
+            display: none !important;
+        }
+
+        body.chessmind-open a,
+        body.chessmind-open button,
+        body.chessmind-open input,
+        body.chessmind-open select {
+            cursor: pointer;
+        }
+
+        .system-node-ai {
+            z-index: 5;
+        }
+
+        .ai-play-hint {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 12px);
+            transform: translate(-50%, 6px);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 11px;
+            border: 1px solid rgba(47, 127, 120, .42);
+            border-radius: 10px;
+            background: rgba(248, 243, 234, .97);
+            color: var(--text-primary);
+            box-shadow: 0 12px 28px rgba(75, 58, 37, .14), 0 2px 10px rgba(47, 127, 120, .08);
+            backdrop-filter: blur(12px);
+            white-space: nowrap;
+            font: 600 .65rem var(--font-mono);
+            letter-spacing: .08em;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+        }
+
+        .ai-play-hint::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            width: 10px;
+            height: 10px;
+            transform: translateX(-50%) rotate(45deg);
+            background: rgba(248, 243, 234, .97);
+            border-right: 1px solid rgba(47, 127, 120, .24);
+            border-bottom: 1px solid rgba(47, 127, 120, .24);
+        }
+
+        .ai-play-hint-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 0 4px rgba(47, 127, 120, .08);
+            flex: 0 0 auto;
+        }
+
+        .ai-play-hint-arrow {
+            color: var(--cyan);
+            font-size: .8rem;
+            line-height: 1;
+        }
+
+        .system-node-ai:hover .ai-play-hint,
+        .system-node-ai:focus-visible .ai-play-hint {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+        }
+
+        .chessmind-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 310;
+            display: grid;
+            place-items: center;
+            padding: clamp(12px, 3vw, 34px);
+            background: rgba(43, 41, 37, .66);
+            backdrop-filter: blur(12px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .22s ease, visibility .22s ease;
+        }
+
+        .chessmind-modal.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .chessmind-dialog {
+            width: min(1280px, 100%);
+            height: min(930px, 95vh);
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface-800);
+            box-shadow: 0 34px 100px rgba(45, 36, 24, .30);
+            transform: translateY(14px) scale(.985);
+            transition: transform .24s ease;
+        }
+
+        .chessmind-modal.open .chessmind-dialog {
+            transform: none;
+        }
+
+        .chessmind-toolbar {
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 14px 10px 18px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(248, 243, 234, .94);
+        }
+
+        .chessmind-title-wrap {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .chessmind-status {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 0 4px rgba(47, 127, 120, .08);
+        }
+
+        .chessmind-title {
+            font: 600 .76rem var(--font-mono);
+            letter-spacing: .09em;
+            color: var(--text-primary);
+        }
+
+        .chessmind-subtitle {
+            margin-top: 2px;
+            color: var(--text-muted);
+            font: 500 .63rem var(--font-mono);
+            letter-spacing: .03em;
+        }
+
+        .chessmind-close {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
+        }
+
+        .chessmind-close:hover,
+        .chessmind-close:focus-visible {
+            color: var(--cyan);
+            border-color: var(--cyan);
+            background: rgba(47, 127, 120, .06);
+            transform: rotate(90deg);
+            outline: none;
+        }
+
+        .chessmind-frame-wrap {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            background: var(--surface-800);
+        }
+
+        .chessmind-frame {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: 0;
+            background: var(--surface-800);
+        }
+
+        @media (max-width:760px) {
+            .ai-play-hint {
+                bottom: calc(100% + 10px);
+                padding: 7px 10px;
+                font-size: .60rem;
+            }
+
+            .chessmind-modal {
+                padding: 0;
+            }
+
+            .chessmind-dialog {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+                border-left: 0;
+                border-right: 0;
+            }
+
+            .chessmind-toolbar {
+                min-height: 54px;
+                padding-left: 14px;
+            }
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+
+            .ai-play-hint,
+            .chessmind-modal,
+            .chessmind-dialog,
+            .chessmind-close {
+                transition: none !important;
+            }
+        }
+
         .hero-role {
             margin-top: var(--sp-lg);
             font-family: var(--font-body);
@@ -5108,6 +5344,28 @@ MOBILE
         </div>
     </div>
 
+    <!-- ============ CHESSMIND AI MODAL ============ -->
+    <div class="chessmind-modal" id="chessmindModal" aria-hidden="true">
+        <div class="chessmind-dialog" role="dialog" aria-modal="true" aria-labelledby="chessmindTitle">
+            <div class="chessmind-toolbar">
+                <div class="chessmind-title-wrap">
+                    <span class="chessmind-status" aria-hidden="true"></span>
+                    <div>
+                        <div class="chessmind-title" id="chessmindTitle">CHESSMIND · AI INTELLIGENCE</div>
+                        <div class="chessmind-subtitle">Interactive chess analysis powered by the supplied ChessMind
+                            Core</div>
+                    </div>
+                </div>
+                <button class="chessmind-close" id="chessmindClose" type="button"
+                    aria-label="Close ChessMind AI">×</button>
+            </div>
+            <div class="chessmind-frame-wrap">
+                <iframe class="chessmind-frame" id="chessmindFrame" title="ChessMind AI" allow="fullscreen"
+                    allowfullscreen loading="eager" data-src="AI/chessmind/web/index.html?v=20260921-2"></iframe>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ HERO ============ -->
     <section class="hero" id="top">
         <div class="hero-bg"><canvas id="heroCanvas"></canvas></div>
@@ -5149,9 +5407,15 @@ MOBILE
 
                         <span class="system-line">→</span>
 
-                        <button class="system-node" data-system="ai" type="button">
+                        <button class="system-node system-node-ai" data-system="ai" type="button"
+                            aria-label="AI — click to experience ChessMind AI">
                             <span class="system-dot"></span>
-                            AI
+                            <span>AI</span>
+                            <span class="ai-play-hint" aria-hidden="true">
+                                <span class="ai-play-hint-dot"></span>
+                                <span>CLICK TO EXPERIENCE AI</span>
+                                <span class="ai-play-hint-arrow">↗</span>
+                            </span>
                         </button>
                     </div>
                     <div class="hero-cta">
@@ -7666,11 +7930,13 @@ MOBILE
         })();
         /* ========================================================
            SYSTEM STACK
-           SOFTWARE opens AeroStrike; the other three domains retain their
-           existing visual active-state behavior.
+           SOFTWARE opens AeroStrike.
+           SECURITY and HARDWARE retain their existing active-state behavior.
+           AI is injected and managed by AI/chessmind/portfolio-integration.js.
            ======================================================== */
         const systemNodes = document.querySelectorAll('.system-node');
         const softwareNode = document.querySelector('.system-node-software');
+
         const aerostrikeModal = document.getElementById('aerostrikeModal');
         const aerostrikeFrame = document.getElementById('aerostrikeFrame');
         const aerostrikeClose = document.getElementById('aerostrikeClose');
@@ -7681,24 +7947,10 @@ MOBILE
             if (!aerostrikeModal || !aerostrikeFrame) return;
 
             aerostrikeLastFocused = document.activeElement;
-
-            /*
-             * Pygbag's generated page needs to be served over HTTP(S).
-             * When the portfolio is opened directly as file://, Chromium gives
-             * the game a null origin and the pygbag runtime can render only its
-             * loading shell. In that local-development case, use the already
-             * working pygbag test server. On HTTP(S) hosting (Live Server,
-             * GitHub Pages, etc.), use the normal same-origin relative build.
-             */
-            const localFileFallback = 'http://127.0.0.1:8080/';
             const gamePath = aerostrikeFrame.dataset.src || 'games/aerostrike/build/web/index.html';
-
-            let gameUrl = gamePath;
-            if (window.location.protocol === 'file:') {
-                gameUrl = localFileFallback;
-            } else {
-                gameUrl = new URL(gamePath, document.baseURI).href;
-            }
+            const gameUrl = window.location.protocol === 'file:'
+                ? 'http://127.0.0.1:8080/'
+                : new URL(gamePath, document.baseURI).href;
 
             if (aerostrikeFrame.getAttribute('src') !== gameUrl) {
                 aerostrikeFrame.setAttribute('src', gameUrl);
@@ -7707,7 +7959,6 @@ MOBILE
             aerostrikeModal.classList.add('open');
             aerostrikeModal.setAttribute('aria-hidden', 'false');
             document.body.classList.add('aerostrike-open');
-
             window.aeroStrikeGameOpen = true;
             window.setTimeout(() => aerostrikeClose?.focus(), 0);
         }
@@ -7719,32 +7970,22 @@ MOBILE
             aerostrikeModal.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('aerostrike-open');
             window.aeroStrikeGameOpen = false;
-
-            // Return the frame to a same-document blank page so the browser
-            // does not navigate away from the portfolio context.
             aerostrikeFrame.src = 'about:blank';
-
-            if (aerostrikeLastFocused && typeof aerostrikeLastFocused.focus === 'function') {
-                aerostrikeLastFocused.focus();
-            }
+            aerostrikeLastFocused?.focus?.();
         }
 
         systemNodes.forEach(node => {
             node.addEventListener('click', () => {
                 systemNodes.forEach(item => item.classList.remove('active'));
-
                 if (node === softwareNode) {
-                    // SOFTWARE does not stay highlighted; it simply launches the game.
                     openAeroStrike();
                     return;
                 }
-
                 node.classList.add('active');
             });
         });
 
         aerostrikeClose?.addEventListener('click', closeAeroStrike);
-
         aerostrikeModal?.addEventListener('click', event => {
             if (event.target === aerostrikeModal) closeAeroStrike();
         });
@@ -8480,6 +8721,40 @@ MOBILE
         updateAssociationMoreButton();
         openAssociationFromHash();
     </script>
+    <script>
+        /* ================= CHESSMIND AI CONTROLLER ================= */
+        (() => {
+            const aiNode = document.querySelector('.system-node-ai');
+            const modal = document.getElementById('chessmindModal');
+            const frame = document.getElementById('chessmindFrame');
+            const close = document.getElementById('chessmindClose');
+            const nodes = document.querySelectorAll('.system-node');
+            let lastFocused = null;
+            if (!aiNode || !modal || !frame || !close) return;
+            const url = () => window.location.protocol === 'file:'
+                ? 'http://127.0.0.1:8080/AI/chessmind/web/index.html'
+                : new URL(frame.dataset.src || 'AI/chessmind/web/index.html?v=20260921-2', document.baseURI).href;
+            function openChessMind() {
+                lastFocused = document.activeElement;
+                const src = url();
+                if (frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+                nodes.forEach(n => n.classList.remove('active')); aiNode.classList.add('active');
+                modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('chessmind-open'); window.chessMindOpen = true;
+                window.setTimeout(() => close.focus(), 0);
+            }
+            function closeChessMind() {
+                modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('chessmind-open'); window.chessMindOpen = false;
+                frame.src = 'about:blank'; aiNode.classList.remove('active');
+                if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+            }
+            aiNode.addEventListener('click', openChessMind); close.addEventListener('click', closeChessMind);
+            modal.addEventListener('click', e => { if (e.target === modal) closeChessMind(); });
+            document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) closeChessMind(); });
+        })();
+    </script>
+
 </body>
 
 </html>
