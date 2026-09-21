@@ -25,7 +25,7 @@ from chessmind.config import EngineConfig
 from chessmind.engine.engine import ChessEngine
 
 HOST = os.environ.get("CHESSMIND_HOST", "127.0.0.1")
-PORT = int(os.environ.get("CHESSMIND_PORT", "8080"))
+PORT = int(os.environ.get("PORT", os.environ.get("CHESSMIND_PORT", "8080")))
 ENGINE_LOCK = threading.Lock()
 
 
