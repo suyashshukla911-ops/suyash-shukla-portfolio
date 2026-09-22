@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>Suyash Shukla — AI, Cybersecurity, Software &amp; Electronics</title>
     <meta name="description"
         content="Suyash Shukla — Electronics &amp; Computer Science engineer working across AI, cybersecurity, software and industrial automation. Portfolio, projects, experience and credentials.">
@@ -2343,7 +2344,7 @@ MOBILE
         .project-card:hover {
             transform: translateY(-4px);
             border-color: var(--cyan-deep);
-            background: #F6EEE3;
+            background: var(--surface-700);
         }
 
         .project-info {
@@ -4461,8 +4462,77 @@ MOBILE
         /* ================= SOFT-LIGHT CINEMATIC THEME =================
    Light by default, while preserving the original technical/cinematic language.
 */
+        /* ================= CINEMATIC DARK DEFAULT =================
+           Dark is the primary portfolio presentation.
+           Light mode is retained behind html[data-theme="light"].
+        */
         :root {
-            /* Warm beige / parchment palette — light, premium, not white */
+            --bg-950: #06080D;
+            --bg-900: #0B1018;
+            --surface-800: #101722;
+            --surface-700: #151F2B;
+            --border: #273548;
+            --text-primary: #F5F8FC;
+            --text-secondary: #AAB7C6;
+            --text-muted: #748397;
+            --cyan: #59E6FF;
+            --cyan-deep: #18BEDA;
+            --violet: #A695FF;
+            --success: #59D68A;
+            --warning: #F5C76A;
+            --error: #FF6B78;
+        }
+
+        body {
+            background: var(--bg-950);
+            color: var(--text-primary);
+        }
+
+        header.scrolled {
+            background: rgba(6, 8, 13, .84);
+        }
+
+        .mobile-menu {
+            background: var(--bg-950);
+        }
+
+        .hero {
+            background:
+                radial-gradient(circle at 78% 18%, rgba(166, 149, 255, .10), transparent 32%),
+                linear-gradient(180deg, #06080D 0%, #0A1018 100%);
+        }
+
+        .hero-bg::after {
+            background:
+                radial-gradient(ellipse 60% 50% at 70% 40%, rgba(166, 149, 255, .13), transparent 60%),
+                radial-gradient(ellipse 55% 55% at 20% 70%, rgba(89, 230, 255, .09), transparent 60%);
+        }
+
+        .proof,
+        .contact-section {
+            background: var(--bg-900);
+        }
+
+        .domain-card:hover,
+        .domain-card.active,
+        .project-card:hover {
+            background: var(--surface-700);
+        }
+
+        .lab-canvas-wrap,
+        .lab-panel {
+            background: var(--bg-950);
+        }
+
+        ::selection {
+            background: var(--cyan);
+            color: #041017;
+        }
+
+        /* ================= LIGHT THEME =================
+           Same layout and JavaScript behaviour; only visual tokens change.
+        */
+        html[data-theme="light"] {
             --bg-950: #F1E8DA;
             --bg-900: #E7DAC8;
             --surface-800: #FBF6EE;
@@ -4479,58 +4549,45 @@ MOBILE
             --error: #A94747;
         }
 
-        body {
-            background: var(--bg-950);
-            color: var(--text-primary);
-        }
-
-        header.scrolled {
+        html[data-theme="light"] header.scrolled {
             background: rgba(241, 232, 218, .86);
         }
 
-        .mobile-menu {
+        html[data-theme="light"] .mobile-menu {
             background: var(--bg-950);
         }
 
-        .hero {
+        html[data-theme="light"] .hero {
             background: linear-gradient(180deg, #F5EDE2 0%, #EDE1D1 100%);
         }
 
-        .hero-bg::after {
+        html[data-theme="light"] .hero-bg::after {
             background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(118, 101, 143, .14), transparent 60%), radial-gradient(ellipse 55% 55% at 20% 70%, rgba(22, 127, 136, .10), transparent 60%);
         }
 
-        .proof {
+        html[data-theme="light"] .proof,
+        html[data-theme="light"] .contact-section {
             background: #E7DAC8;
         }
 
-        .domain-card:hover,
-        .domain-card.active {
+        html[data-theme="light"] .domain-card:hover,
+        html[data-theme="light"] .domain-card.active {
             background: #E5D8C5;
         }
 
-        .project-card:hover {
+        html[data-theme="light"] .project-card:hover {
             background: #F6EEE3;
         }
 
-        .lab-canvas-wrap {
+        html[data-theme="light"] .lab-canvas-wrap {
             background: #F4EBDD;
         }
 
-        .lab-panel {
+        html[data-theme="light"] .lab-panel {
             background: #FBF6EE;
         }
 
-        .contact-section {
-            background: #E7DAC8;
-        }
-
-        ::selection {
-            background: var(--cyan);
-            color: #fff;
-        }
-
-        /* Optional dark mode — light is the default */
+        /* Optional dark mode */
         html[data-theme="dark"] {
             --bg-950: #070A0F;
             --bg-900: #0B1017;
@@ -5271,6 +5328,183 @@ MOBILE
                 flex: 0 0 auto;
             }
         }
+
+        /* =========================================================
+           DARK THEME SURFACE POLISH
+           Keeps all existing functionality/logic unchanged.
+           ========================================================= */
+        html:not([data-theme="light"]) .association-card,
+        html:not([data-theme="light"]) .cert-card,
+        html:not([data-theme="light"]) .profile-card {
+            background: rgba(16, 23, 34, .86);
+            border-color: #29394C;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, .30);
+        }
+
+        html:not([data-theme="light"]) .association-card:hover,
+        html:not([data-theme="light"]) .association-card:focus-visible,
+        html:not([data-theme="light"]) .cert-card:hover,
+        html:not([data-theme="light"]) .profile-card:hover {
+            background: #151F2B;
+            border-color: var(--cyan);
+            box-shadow: 0 24px 65px rgba(0, 0, 0, .42);
+        }
+
+        html:not([data-theme="light"]) .association-more {
+            background: rgba(16, 23, 34, .78);
+        }
+
+        html:not([data-theme="light"]) .association-detail-overlay,
+        html:not([data-theme="light"]) .credential-lightbox,
+        html:not([data-theme="light"]) .experience-lightbox {
+            background: rgba(2, 5, 9, .78);
+        }
+
+        html:not([data-theme="light"]) .association-detail,
+        html:not([data-theme="light"]) .chessmind-dialog,
+        html:not([data-theme="light"]) .aerostrike-dialog,
+        html:not([data-theme="light"]) .credential-modal {
+            background: #0E151F;
+            border-color: #2A3A4D;
+            box-shadow: 0 34px 110px rgba(0, 0, 0, .55);
+        }
+
+        html:not([data-theme="light"]) .association-detail-close,
+        html:not([data-theme="light"]) .experience-lightbox-close,
+        html:not([data-theme="light"]) .experience-lightbox-nav,
+        html:not([data-theme="light"]) .theme-btn {
+            background: rgba(16, 23, 34, .92);
+            border-color: #314258;
+            color: var(--text-primary);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, .28);
+        }
+
+        html:not([data-theme="light"]) .association-detail-close:hover,
+        html:not([data-theme="light"]) .experience-lightbox-close:hover,
+        html:not([data-theme="light"]) .experience-lightbox-nav:hover:not(:disabled) {
+            background: #151F2B;
+        }
+
+        html:not([data-theme="light"]) .system-node {
+            background: rgba(16, 23, 34, .78);
+            border-color: #2B3B4F;
+            color: #AEBACA;
+        }
+
+        html:not([data-theme="light"]) .system-node:hover {
+            background: #17212D;
+            border-color: var(--cyan);
+        }
+
+        html:not([data-theme="light"]) .system-node.active {
+            background: rgba(89, 230, 255, .08);
+            border-color: var(--cyan);
+        }
+
+        html:not([data-theme="light"]) .software-play-hint,
+        html:not([data-theme="light"]) .ai-play-hint {
+            background: #111A25;
+            border-color: rgba(89, 230, 255, .42);
+            color: var(--text-primary);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, .40);
+        }
+
+        html:not([data-theme="light"]) .software-play-hint::after,
+        html:not([data-theme="light"]) .ai-play-hint::after {
+            background: #111A25;
+            border-right-color: rgba(89, 230, 255, .24);
+            border-bottom-color: rgba(89, 230, 255, .24);
+        }
+
+        html:not([data-theme="light"]) .aerostrike-toolbar,
+        html:not([data-theme="light"]) .chessmind-toolbar {
+            background: #101722;
+            border-bottom-color: #2A3A4D;
+        }
+
+        html:not([data-theme="light"]) .experience-lightbox-info {
+            background: rgba(16, 23, 34, .78);
+        }
+
+        html:not([data-theme="light"]) .challenge-stat {
+            background: rgba(255, 255, 255, .035);
+        }
+
+        /* Darken remaining light-only card surfaces without touching photos. */
+        html:not([data-theme="light"]) .association-card-overlay-label,
+        html:not([data-theme="light"]) .cert-photo-count,
+        html:not([data-theme="light"]) .proud-photo-count {
+            background: rgba(3, 7, 12, .62);
+        }
+
+        /* Stronger readable typography on dark backgrounds. */
+        html:not([data-theme="light"]) body {
+            font-size: 15.5px;
+        }
+
+        html:not([data-theme="light"]) h1,
+        html:not([data-theme="light"]) h2,
+        html:not([data-theme="light"]) h3,
+        html:not([data-theme="light"]) h4,
+        html:not([data-theme="light"]) h5,
+        html:not([data-theme="light"]) .logo,
+        html:not([data-theme="light"]) .mobile-menu nav a {
+            font-family: var(--font-display);
+            color: var(--text-primary);
+            text-rendering: geometricPrecision;
+        }
+
+        html:not([data-theme="light"]) p,
+        html:not([data-theme="light"]) li,
+        html:not([data-theme="light"]) .nav-links a,
+        html:not([data-theme="light"]) .association-card p,
+        html:not([data-theme="light"]) .cert-card p,
+        html:not([data-theme="light"]) .profile-card p {
+            color: var(--text-secondary);
+        }
+
+        html:not([data-theme="light"]) .eyebrow,
+        html:not([data-theme="light"]) .badge,
+        html:not([data-theme="light"]) .association-role,
+        html:not([data-theme="light"]) .association-index,
+        html:not([data-theme="light"]) .association-open,
+        html:not([data-theme="light"]) .system-label {
+            color: var(--cyan);
+        }
+
+        html:not([data-theme="light"]) .tag {
+            color: #AEBACA;
+            border-color: #33445A;
+            background: rgba(255, 255, 255, .015);
+        }
+
+        html:not([data-theme="light"]) .btn-ghost {
+            background: rgba(16, 23, 34, .55);
+            border-color: #304157;
+        }
+
+        html:not([data-theme="light"]) .btn-ghost:hover {
+            background: #151F2B;
+        }
+
+        html:not([data-theme="light"]) .theme-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            background: #111A25;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .015), 0 8px 24px rgba(0, 0, 0, .24);
+        }
+
+        html:not([data-theme="light"]) .theme-btn:hover {
+            background: #17212D;
+            box-shadow: 0 10px 30px rgba(89, 230, 255, .10);
+        }
+
+        /* Light mode remains clean and readable. */
+        html[data-theme="light"] .theme-btn {
+            background: var(--surface-800);
+        }
     </style>
 </head>
 
@@ -5293,7 +5527,7 @@ MOBILE
             </nav>
             <div class="nav-cta">
                 <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch theme"
-                    title="Switch theme">☾</button>
+                    title="Switch theme">☀</button>
                 <a class="btn btn-ghost btn-sm" href="assets/resume/Suyash-Shukla-Resume.pdf" target="_blank"
                     rel="noopener">Resume</a>
                 <a class="btn btn-primary btn-sm"
@@ -5315,7 +5549,7 @@ MOBILE
             <a href="#contact" data-nav-m>Contact</a>
         </nav>
         <div class="mm-foot">
-            <button class="theme-btn" id="themeToggleMobile" type="button" aria-label="Switch theme">☾</button>
+            <button class="theme-btn" id="themeToggleMobile" type="button" aria-label="Switch theme">☀</button>
             <a class="btn btn-primary" href="assets/resume/Suyash-Shukla-Resume.pdf" download data-nav-m>Download
                 Resume</a>
             <a class="btn btn-ghost" href="https://www.linkedin.com/in/suyash-shukla-765245333/" target="_blank"
@@ -6762,7 +6996,7 @@ MOBILE
             if (select && preview) { const img = getMedia('project:' + select.value); preview.innerHTML = img ? `<img src="${img}" alt="Project image preview">` : '<span class="media-placeholder">No image yet</span>'; }
         }
         function fillProjectMediaSelect() { const select = document.getElementById('mediaProjectSelect'); if (!select) return; select.innerHTML = PROJECTS.map(p => `<option value="${p.slug}">${p.title}</option>`).join(''); refreshMediaUI(); }
-        (function themeManager() { const root = document.documentElement, saved = localStorage.getItem('suyash-theme'); if (saved === 'dark') root.dataset.theme = 'dark'; function update() { const dark = root.dataset.theme === 'dark';['themeToggle', 'themeToggleMobile'].forEach(id => { const b = document.getElementById(id); if (b) { b.textContent = dark ? '☀' : '☾'; b.title = dark ? 'Switch to light theme' : 'Switch to dark theme'; } }); } function toggle() { const dark = root.dataset.theme === 'dark'; if (dark) delete root.dataset.theme; else root.dataset.theme = 'dark'; localStorage.setItem('suyash-theme', dark ? 'light' : 'dark'); update(); } document.getElementById('themeToggle')?.addEventListener('click', toggle); document.getElementById('themeToggleMobile')?.addEventListener('click', toggle); update(); })();
+        (function themeManager() { const root = document.documentElement, saved = localStorage.getItem('suyash-theme'); root.dataset.theme = saved === 'light' ? 'light' : 'dark'; function update() { const dark = root.dataset.theme === 'dark';['themeToggle', 'themeToggleMobile'].forEach(id => { const b = document.getElementById(id); if (b) { b.textContent = dark ? '☀' : '☾'; b.title = dark ? 'Switch to light theme' : 'Switch to dark theme'; b.setAttribute('aria-pressed', String(dark)); } }); } function toggle() { const dark = root.dataset.theme === 'dark'; root.dataset.theme = dark ? 'light' : 'dark'; localStorage.setItem('suyash-theme', dark ? 'light' : 'dark'); update(); } document.getElementById('themeToggle')?.addEventListener('click', toggle); document.getElementById('themeToggleMobile')?.addEventListener('click', toggle); update(); })();
         loadMedia();
 
         /* ========================================================
