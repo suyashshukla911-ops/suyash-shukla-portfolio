@@ -289,37 +289,46 @@
       pointer-events: none
     }
 
-    /* Solid chess pieces: use the filled (black) chess glyph set and
-       recolor it per side. This avoids the thin outline-style white glyphs. */
-    .piece {
+
+    /* ================= PREMIUM VECTOR CHESS PIECES =================
+       The board no longer uses Unicode chess-font glyphs. Pieces are
+       rendered as inline SVG vectors so they stay solid, crisp and
+       visually consistent across Windows/macOS/mobile browsers. */
+    .piece-svg {
+      width: 82%;
+      height: 82%;
       display: block;
       position: relative;
       z-index: 2;
-      font-family: "DejaVu Sans", "Segoe UI Symbol", "Arial Unicode MS", serif;
-      font-variant-emoji: text;
-      font-size: clamp(36px, 7vw, 72px);
-      line-height: 1;
-      user-select: none;
+      overflow: visible;
       transform: translateY(-1px);
       transition: transform .16s ease, filter .16s ease;
-      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      pointer-events: none;
     }
 
-    .sq:hover .piece {
-      transform: translateY(-2px) scale(1.035)
+    .sq:hover .piece-svg {
+      transform: translateY(-2px) scale(1.035);
+      filter: drop-shadow(0 7px 7px rgba(42, 38, 31, .20));
     }
 
-    .piece.white {
-      color: #fff;
-      -webkit-text-stroke: 1.6px #4a4741;
-      text-shadow: 0 2px 3px rgba(0, 0, 0, .28);
-      paint-order: stroke fill;
+    .piece-svg.white {
+      filter: drop-shadow(0 4px 5px rgba(47, 42, 34, .28));
     }
 
-    .piece.black {
-      color: #111;
-      -webkit-text-stroke: .45px #111;
-      text-shadow: 0 1px 1px rgba(255, 255, 255, .28);
+    .piece-svg.black {
+      filter: drop-shadow(0 4px 5px rgba(23, 25, 23, .34));
+    }
+
+    .piece-svg .rim {
+      opacity: .88;
+    }
+
+    @media(max-width:560px) {
+      .piece-svg {
+        width: 86%;
+        height: 86%;
+      }
     }
 
     .coord {
@@ -761,12 +770,171 @@
 </head>
 
 <body>
+
+  <!-- Premium vector chess-piece sprite. -->
+  <svg id="pieceSprite" width="0" height="0" aria-hidden="true"
+    style="position:absolute;overflow:hidden;pointer-events:none">
+    <defs>
+      <linearGradient id="pieceWhiteBase" x1="20%" y1="0%" x2="80%" y2="100%">
+        <stop offset="0%" stop-color="#fffdf5" />
+        <stop offset="42%" stop-color="#f1eadb" />
+        <stop offset="72%" stop-color="#d9cfbe" />
+        <stop offset="100%" stop-color="#bdb3a4" />
+      </linearGradient>
+      <linearGradient id="pieceBlackBase" x1="15%" y1="0%" x2="85%" y2="100%">
+        <stop offset="0%" stop-color="#4c514d" />
+        <stop offset="36%" stop-color="#292d2a" />
+        <stop offset="70%" stop-color="#161917" />
+        <stop offset="100%" stop-color="#080a09" />
+      </linearGradient>
+      <linearGradient id="pieceWhiteEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff" />
+        <stop offset="100%" stop-color="#b4aa9a" />
+      </linearGradient>
+      <linearGradient id="pieceBlackEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6a706b" />
+        <stop offset="100%" stop-color="#090b0a" />
+      </linearGradient>
+      <linearGradient id="pieceWhiteShine" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity=".55" />
+        <stop offset="55%" stop-color="#ffffff" stop-opacity=".10" />
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+      </linearGradient>
+      <linearGradient id="pieceBlackShine" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity=".28" />
+        <stop offset="45%" stop-color="#ffffff" stop-opacity=".08" />
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+      </linearGradient>
+      <filter id="pieceInnerShadow" x="-20%" y="-20%" width="140%" height="160%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.25" result="blur" />
+        <feOffset dy="1.25" result="offset" />
+        <feComposite in="offset" in2="SourceAlpha" operator="out" result="shadowDiff" />
+        <feFlood flood-color="#000000" flood-opacity=".18" result="shadowColor" />
+        <feComposite in="shadowColor" in2="shadowDiff" operator="in" result="shadow" />
+        <feComposite in="SourceGraphic" in2="shadow" operator="over" />
+      </filter>
+
+      <symbol id="cp-white-P" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="31" ry="8" fill="url(#pieceWhiteEdge)" />
+        <path d="M21 101c1-10 8-15 18-19 5-4 6-10 6-15H55c0 6 1 11 6 15 10 4 17 9 18 19z" fill="url(#pieceWhiteBase)"
+          stroke="#575047" stroke-width="1.6" />
+        <circle cx="50" cy="39" r="16.5" fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.6" />
+        <path d="M39 33c5-7 17-10 24-1-3-2-7-3-12-2-5 1-9 2-12 3z" fill="url(#pieceWhiteShine)" opacity=".95" />
+      </symbol>
+      <symbol id="cp-black-P" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="31" ry="8" fill="url(#pieceBlackEdge)" />
+        <path d="M21 101c1-10 8-15 18-19 5-4 6-10 6-15H55c0 6 1 11 6 15 10 4 17 9 18 19z" fill="url(#pieceBlackBase)"
+          stroke="#080a09" stroke-width="1.7" />
+        <circle cx="50" cy="39" r="16.5" fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.7" />
+        <path d="M39 33c5-7 17-10 24-1-3-2-7-3-12-2-5 1-9 2-12 3z" fill="url(#pieceBlackShine)" opacity=".95" />
+      </symbol>
+
+      <symbol id="cp-white-R" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="35" ry="8" fill="url(#pieceWhiteEdge)" />
+        <path d="M23 99c2-8 8-12 16-15V49h22v35c8 3 14 7 16 15z" fill="url(#pieceWhiteBase)" stroke="#575047"
+          stroke-width="1.6" />
+        <path d="M27 28h9v9h7v-9h14v9h7v-9h9v20H27z" fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.6"
+          stroke-linejoin="round" />
+        <path d="M33 31h8v4h-8zm16 0h8v4h-8zm16 0h5v4h-5z" fill="url(#pieceWhiteShine)" />
+      </symbol>
+      <symbol id="cp-black-R" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="35" ry="8" fill="url(#pieceBlackEdge)" />
+        <path d="M23 99c2-8 8-12 16-15V49h22v35c8 3 14 7 16 15z" fill="url(#pieceBlackBase)" stroke="#080a09"
+          stroke-width="1.7" />
+        <path d="M27 28h9v9h7v-9h14v9h7v-9h9v20H27z" fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.7"
+          stroke-linejoin="round" />
+        <path d="M33 31h8v4h-8zm16 0h8v4h-8zm16 0h5v4h-5z" fill="url(#pieceBlackShine)" />
+      </symbol>
+
+      <symbol id="cp-white-B" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="34" ry="8" fill="url(#pieceWhiteEdge)" />
+        <path
+          d="M24 99c2-9 9-13 18-17 5-3 7-8 7-14l-8-28c-1-5 2-9 9-12 7 3 10 7 9 12l-8 28c0 6 2 11 7 14 9 4 16 8 18 17z"
+          fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.6" stroke-linejoin="round" />
+        <path d="M50 18c-4 6-4 15 0 23 4-8 4-17 0-23z" fill="#8e8475" />
+        <path d="M48 20c-1 5-1 11 1 16 1-7 1-12-1-16z" fill="url(#pieceWhiteShine)" />
+      </symbol>
+      <symbol id="cp-black-B" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="34" ry="8" fill="url(#pieceBlackEdge)" />
+        <path
+          d="M24 99c2-9 9-13 18-17 5-3 7-8 7-14l-8-28c-1-5 2-9 9-12 7 3 10 7 9 12l-8 28c0 6 2 11 7 14 9 4 16 8 18 17z"
+          fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.7" stroke-linejoin="round" />
+        <path d="M50 18c-4 6-4 15 0 23 4-8 4-17 0-23z" fill="#0a0c0b" />
+        <path d="M48 20c-1 5-1 11 1 16 1-7 1-12-1-16z" fill="url(#pieceBlackShine)" />
+      </symbol>
+
+      <symbol id="cp-white-N" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="35" ry="8" fill="url(#pieceWhiteEdge)" />
+        <path
+          d="M23 100c2-8 9-12 18-15 4-5 7-9 8-14-11-7-14-17-11-30 2-10 8-18 18-23 4-2 8-3 12-2-3 4-4 8-3 12 7 3 12 8 14 16 2 8 0 16-4 23-4 8-10 13-17 17 10 4 17 8 19 16z"
+          fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.7" stroke-linejoin="round" />
+        <path d="M60 18c5 1 10 4 13 8-5-2-9-2-13 0-2-3-2-5 0-8z" fill="url(#pieceWhiteShine)" />
+        <circle cx="68" cy="28" r="2.2" fill="#575047" />
+        <path d="M49 30c8 3 13 7 15 14-8-2-13-6-15-14z" fill="#c5bbac" opacity=".62" />
+      </symbol>
+      <symbol id="cp-black-N" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="35" ry="8" fill="url(#pieceBlackEdge)" />
+        <path
+          d="M23 100c2-8 9-12 18-15 4-5 7-9 8-14-11-7-14-17-11-30 2-10 8-18 18-23 4-2 8-3 12-2-3 4-4 8-3 12 7 3 12 8 14 16 2 8 0 16-4 23-4 8-10 13-17 17 10 4 17 8 19 16z"
+          fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M60 18c5 1 10 4 13 8-5-2-9-2-13 0-2-3-2-5 0-8z" fill="url(#pieceBlackShine)" />
+        <circle cx="68" cy="28" r="2.2" fill="#a5aaa5" opacity=".65" />
+      </symbol>
+
+      <symbol id="cp-white-Q" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="37" ry="8" fill="url(#pieceWhiteEdge)" />
+        <path d="M19 99c2-9 10-14 20-17 7-3 9-9 8-16h6c-1 7 1 13 8 16 10 3 18 8 20 17z" fill="url(#pieceWhiteBase)"
+          stroke="#575047" stroke-width="1.6" />
+        <path d="M21 29l8 10 11-16 10 15 10-15 11 16 8-10 2 21H19z" fill="url(#pieceWhiteBase)" stroke="#575047"
+          stroke-width="1.6" stroke-linejoin="round" />
+        <circle cx="29" cy="27" r="4" fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.3" />
+        <circle cx="50" cy="22" r="4" fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.3" />
+        <circle cx="71" cy="27" r="4" fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.3" />
+        <path d="M23 32c7 3 14 3 21 1 8 2 16 2 28-2" fill="none" stroke="url(#pieceWhiteShine)" stroke-width="4"
+          stroke-linecap="round" opacity=".85" />
+      </symbol>
+      <symbol id="cp-black-Q" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="37" ry="8" fill="url(#pieceBlackEdge)" />
+        <path d="M19 99c2-9 10-14 20-17 7-3 9-9 8-16h6c-1 7 1 13 8 16 10 3 18 8 20 17z" fill="url(#pieceBlackBase)"
+          stroke="#080a09" stroke-width="1.7" />
+        <path d="M21 29l8 10 11-16 10 15 10-15 11 16 8-10 2 21H19z" fill="url(#pieceBlackBase)" stroke="#080a09"
+          stroke-width="1.7" stroke-linejoin="round" />
+        <circle cx="29" cy="27" r="4" fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.3" />
+        <circle cx="50" cy="22" r="4" fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.3" />
+        <circle cx="71" cy="27" r="4" fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.3" />
+        <path d="M23 32c7 3 14 3 21 1 8 2 16 2 28-2" fill="none" stroke="url(#pieceBlackShine)" stroke-width="4"
+          stroke-linecap="round" opacity=".85" />
+      </symbol>
+
+      <symbol id="cp-white-K" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="37" ry="8" fill="url(#pieceWhiteEdge)" />
+        <path d="M18 99c2-9 11-15 21-18 6-2 8-8 8-14h6c0 6 2 12 8 14 10 3 19 9 21 18z" fill="url(#pieceWhiteBase)"
+          stroke="#575047" stroke-width="1.6" />
+        <path d="M45 30h10v-9h9v-7h-9V6h-10v8h-9v7h9z" fill="url(#pieceWhiteBase)" stroke="#575047" stroke-width="1.6"
+          stroke-linejoin="round" />
+        <path d="M39 30c2 9 7 15 11 19 4-4 9-10 11-19z" fill="url(#pieceWhiteBase)" stroke="#575047"
+          stroke-width="1.6" />
+        <path d="M44 10h5v10h5V15h-5V10z" fill="url(#pieceWhiteShine)" opacity=".9" />
+      </symbol>
+      <symbol id="cp-black-K" viewBox="0 0 100 120">
+        <ellipse cx="50" cy="105" rx="37" ry="8" fill="url(#pieceBlackEdge)" />
+        <path d="M18 99c2-9 11-15 21-18 6-2 8-8 8-14h6c0 6 2 12 8 14 10 3 19 9 21 18z" fill="url(#pieceBlackBase)"
+          stroke="#080a09" stroke-width="1.7" />
+        <path d="M45 30h10v-9h9v-7h-9V6h-10v8h-9v7h9z" fill="url(#pieceBlackBase)" stroke="#080a09" stroke-width="1.7"
+          stroke-linejoin="round" />
+        <path d="M39 30c2 9 7 15 11 19 4-4 9-10 11-19z" fill="url(#pieceBlackBase)" stroke="#080a09"
+          stroke-width="1.7" />
+        <path d="M44 10h5v10h5V15h-5V10z" fill="url(#pieceBlackShine)" opacity=".9" />
+      </symbol>
+    </defs>
+  </svg>
+
   <div class="app">
     <header class="top">
       <div>
         <div class="eyebrow">CHESSMIND AI · GRANDMASTER MODE</div>
         <div class="title">Play. Calculate. Survive.</div>
-        <div class="sub">Deep tactical search · repetition-aware · deterministic core</div>
+        <div class="sub">Deep tactical search · repetition-aware · adaptive engine</div>
       </div>
       <div id="status" class="status"><span class="status-dot"></span><span id="statusText">CONNECTING</span></div>
     </header>
@@ -855,7 +1023,7 @@
       : REMOTE_API;
     // Use the solid/filled Unicode set for both sides. White pieces are
     // filled white with a dark edge; black pieces stay solid black.
-    const GLYPH = { P: '♟', N: '♞', B: '♝', R: '♜', Q: '♛', K: '♚', p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
+    const PIECE_ID = { P: 'P', N: 'N', B: 'B', R: 'R', Q: 'Q', K: 'K', p: 'P', n: 'N', b: 'B', r: 'R', q: 'Q', k: 'K' };
     const files = 'abcdefgh';
     let state = null, selected = null, stack = [], busy = false, human = 'white', aiVsAi = false, aiVsAiToken = 0, gameSeed = 0;
     const $ = id => document.getElementById(id);
@@ -892,7 +1060,17 @@
           if (c === 0) { const rank = document.createElement('span'); rank.className = 'coord rank'; rank.textContent = r; btn.appendChild(rank) }
           if (r === 1) { const file = document.createElement('span'); file.className = 'coord file'; file.textContent = files[c]; btn.appendChild(file) }
           const p = m[sq];
-          if (p) { const span = document.createElement('span'); span.className = 'piece ' + sideFromPiece(p); span.textContent = GLYPH[p] || p; btn.appendChild(span) }
+          if (p) {
+            const side = sideFromPiece(p);
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.classList.add('piece-svg', side);
+            svg.setAttribute('viewBox', '0 0 100 120');
+            svg.setAttribute('aria-hidden', 'true');
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttribute('href', `#cp-${side}-${PIECE_ID[p]}`);
+            svg.appendChild(use);
+            btn.appendChild(svg);
+          }
           if (state.last_move && (state.last_move.slice(0, 2) === sq || state.last_move.slice(2, 4) === sq)) {
             const marker = document.createElement('span'); marker.className = 'move-marker'; marker.textContent = state.last_move.slice(2, 4) === sq ? 'TO' : 'FROM'; btn.appendChild(marker)
           }
