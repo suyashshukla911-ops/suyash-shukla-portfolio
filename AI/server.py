@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import math
 import os
+import secrets
 import sys
 import threading
 from collections import defaultdict
@@ -10,6 +12,7 @@ from enum import Enum
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Event
+import random
 import time
 from urllib.parse import urlparse
 
@@ -18,6 +21,11 @@ try:
     from chess import popcount
 except ImportError as exc:
     raise SystemExit("python-chess is not installed. Run AI\\run_ai.bat first.") from exc
+
+try:
+    from chessmind.stockfish_bridge import StockfishBridge
+except ImportError:
+    StockfishBridge = None
 
 
 # ========================= CHESSMIND CORE =========================
@@ -42,7 +50,8 @@ class EngineConfig:
     transposition_size: int = 131_072
     quiescence_depth: int = 10
     stop_check_interval: int = 128
-    deterministic: bool = True
+    deterministic: bool = False
+    diversify_opening: bool = True
 
     def validated(self):
         return EngineConfig(
@@ -52,6 +61,7 @@ class EngineConfig:
             quiescence_depth=max(0, min(int(self.quiescence_depth), 32)),
             stop_check_interval=max(1, min(int(self.stop_check_interval), 4096)),
             deterministic=bool(self.deterministic),
+            diversify_opening=bool(self.diversify_opening),
         )
 
 class SearchTimer:
@@ -73,6 +83,10 @@ class SearchTimer:
     @property
     def elapsed_ms(self):
         return int((time.perf_counter_ns() - self.started_ns) / 1_000_000)
+
+    @property
+    def remaining_ms(self):
+        return max(0, int((self.deadline_ns - time.perf_counter_ns()) / 1_000_000))
 
 class Bound(Enum):
     EXACT = 0
@@ -977,9 +991,17 @@ LMR_MIN_MOVE_INDEX = 3
 ASPIRATION_MIN_DEPTH = 3
 ASPIRATION_WINDOW = 30
 
-CHECK_EXTENSION_MAX_DEPTH = 8
-MAX_QUIESCENCE_CHECK_DEPTH = 16
+CHECK_EXTENSION_MAX_DEPTH = 18
+MAX_QUIESCENCE_CHECK_DEPTH = 40
+QUIESCENCE_CHECK_DEPTH = 4
 DELTA_MARGIN = 80
+ROOT_OPENING_PLIES = 14
+ROOT_DIVERSIFY_MARGIN_OPENING = 18
+ROOT_DIVERSIFY_MARGIN_MIDDLEGAME = 8
+ROOT_DIVERSIFY_MARGIN_ENDGAME = 4
+ROOT_DIVERSIFY_MAX_CANDIDATES = 5
+ROOT_VERIFY_MIN_REMAINING_MS = 110
+ROOT_VARIATION_RESERVE_MS = 30
 
 
 @dataclass(slots=True)
@@ -1016,6 +1038,11 @@ class SearchContext:
     stats: SearchStats = field(default_factory=SearchStats)
     stop_event: Event = field(default_factory=Event)
     repetition_counts: dict = field(default_factory=dict)
+    rng: random.Random | None = None
+    game_seed: int = 0
+    diversify: bool = False
+    root_candidates: list = field(default_factory=list)
+    opponent_profile: dict = field(default_factory=dict)
 
 
 def _has_non_pawn_material(board, color):
@@ -1038,13 +1065,206 @@ def _build_repetition_counts(board):
     return counts
 
 
+def _opening_home_square(color, piece_type):
+    if color == chess.WHITE:
+        return {chess.KNIGHT: {chess.B1, chess.G1}, chess.BISHOP: {chess.C1, chess.F1}, chess.QUEEN: {chess.D1}, chess.KING: {chess.E1}}.get(piece_type, set())
+    return {chess.KNIGHT: {chess.B8, chess.G8}, chess.BISHOP: {chess.C8, chess.F8}, chess.QUEEN: {chess.D8}, chess.KING: {chess.E8}}.get(piece_type, set())
+
+
+def _opponent_profile(board):
+    """Infer a small, tactical-safe style profile from the opponent's recent moves.
+
+    This is deliberately a heuristic layer over the real search, not a replacement
+    for calculation. It is used only to break very close root ties in the opening
+    and early middlegame so the engine stops following a single scripted line.
+    """
+    opponent = not board.turn
+    profile = {
+        "queen_early": 0,
+        "piece_repeats": 0,
+        "wing_pawn_pushes": 0,
+        "center_pawn_pushes": 0,
+        "captures": 0,
+        "castled": 0,
+        "king_home": 0,
+        "recent_squares": set(),
+    }
+    root = chess.Board()
+    recent = []
+    for ply, move in enumerate(board.move_stack):
+        mover = root.turn
+        if mover == opponent:
+            recent.append((ply, move, root.piece_at(move.from_square)))
+            if root.is_capture(move):
+                profile["captures"] += 1
+            moving = root.piece_at(move.from_square)
+            if moving is not None:
+                if moving.piece_type == chess.QUEEN and ply < 14:
+                    profile["queen_early"] += 1
+                if moving.piece_type in (chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN):
+                    profile["recent_squares"].add(move.to_square)
+                if moving.piece_type == chess.PAWN:
+                    from_file = FILE_OF[move.from_square]
+                    to_file = FILE_OF[move.to_square]
+                    if from_file in (0, 1, 6, 7) or to_file in (0, 1, 6, 7):
+                        profile["wing_pawn_pushes"] += 1
+                    if from_file in (2, 3, 4, 5) or to_file in (2, 3, 4, 5):
+                        profile["center_pawn_pushes"] += 1
+        root.push(move)
+
+    piece_move_counts = defaultdict(int)
+    for _, move, piece in recent[-10:]:
+        if piece is not None:
+            piece_move_counts[(piece.piece_type, move.to_square)] += 1
+    profile["piece_repeats"] = sum(max(0, n - 1) for n in piece_move_counts.values())
+
+    if board.fullmove_number <= 8:
+        king_sq = board.king(opponent)
+        home = chess.E1 if opponent == chess.WHITE else chess.E8
+        if king_sq == home and not (board.has_kingside_castling_rights(opponent) is False and board.has_queenside_castling_rights(opponent) is False):
+            profile["king_home"] = 1
+        if (opponent == chess.WHITE and king_sq in (chess.C1, chess.G1)) or (opponent == chess.BLACK and king_sq in (chess.C8, chess.G8)):
+            profile["castled"] = 1
+
+    return profile
+
+
+def _root_move_adaptation(board, move, profile):
+    """Bounded opening/early-middlegame preference that reacts to the opponent."""
+    if len(board.move_stack) > ROOT_OPENING_PLIES:
+        return 0
+    piece = board.piece_at(move.from_square)
+    if piece is None:
+        return 0
+    bonus = 0
+    is_home_development = move.from_square in _opening_home_square(board.turn, piece.piece_type)
+
+    # Variation must stay inside a sensible opening envelope.
+    if piece.piece_type == chess.KNIGHT and move.to_square in {chess.A3, chess.H3, chess.A6, chess.H6}:
+        bonus -= 18
+    if piece.piece_type == chess.PAWN and FILE_OF[move.to_square] in (0, 7):
+        bonus -= 10
+    if piece.piece_type == chess.PAWN and move.to_square in CENTER_SQUARES:
+        bonus += 5
+    if piece.piece_type in (chess.KNIGHT, chess.BISHOP) and is_home_development:
+        bonus += 6
+
+    # Adapt to what the opponent has actually been doing.
+    if profile.get("piece_repeats", 0) >= 1 and piece.piece_type in (chess.KNIGHT, chess.BISHOP):
+        if move.to_square not in profile.get("recent_squares", set()):
+            bonus += 4
+    if profile.get("wing_pawn_pushes", 0) >= 2:
+        if piece.piece_type == chess.PAWN and FILE_OF[move.to_square] in (2, 3, 4, 5):
+            bonus += 6
+        elif piece.piece_type in (chess.KNIGHT, chess.BISHOP) and is_home_development:
+            bonus += 3
+    if profile.get("queen_early", False) and piece.piece_type in (chess.KNIGHT, chess.BISHOP) and is_home_development:
+        bonus += 5
+    if profile.get("center_pawn_pushes", 0) >= 2 and piece.piece_type == chess.PAWN and FILE_OF[move.to_square] in (0, 7):
+        bonus -= 4
+    if profile.get("king_home", False):
+        if piece.piece_type in (chess.KNIGHT, chess.BISHOP) and is_home_development:
+            bonus += 3
+        if piece.piece_type == chess.KING and abs(move.to_square - move.from_square) == 2:
+            bonus += 4
+
+    return max(-18, min(12, bonus))
+
+
+def _opening_quality_bias(board, move):
+    """Keep early-game variation among principled choices when static scores tie."""
+    if len(board.move_stack) > 8:
+        return 0
+    piece = board.piece_at(move.from_square)
+    if piece is None:
+        return 0
+    if len(board.move_stack) == 0:
+        uci = move.uci()
+        if uci in {"e2e4", "d2d4", "c2c4", "g1f3", "b1c3"}:
+            return 8
+        if uci in {"g2g3", "b2b3", "a2a3", "h2h3"}:
+            return -3
+        if uci in {"b1a3", "g1h3"}:
+            return -22
+    if piece.piece_type == chess.KNIGHT and move.to_square in {chess.A3, chess.H3, chess.A6, chess.H6}:
+        return -14
+    if piece.piece_type == chess.PAWN and FILE_OF[move.to_square] in (0, 7):
+        return -8
+    if piece.piece_type in (chess.KNIGHT, chess.BISHOP) and move.from_square in _opening_home_square(board.turn, piece.piece_type):
+        return 3
+    if piece.piece_type == chess.PAWN and move.to_square in CENTER_SQUARES:
+        return 3
+    return 0
+
+def _root_diversity_margin(board):
+    pieces = len(board.piece_map())
+    if len(board.move_stack) <= ROOT_OPENING_PLIES:
+        return ROOT_DIVERSIFY_MARGIN_OPENING
+    if pieces <= 14:
+        return ROOT_DIVERSIFY_MARGIN_ENDGAME
+    return ROOT_DIVERSIFY_MARGIN_MIDDLEGAME
+
+
+def _opponent_has_mate_in_one(board):
+    """Return True when the side to move can end the game immediately."""
+    for reply in board.legal_moves:
+        board.push(reply)
+        try:
+            if board.is_checkmate():
+                return True
+        finally:
+            board.pop()
+    return False
+
+
+def _root_hanging_penalty(board, move):
+    """Penalize only obvious unforced piece hangs at the variation tie-break layer."""
+    if move not in board.legal_moves:
+        return 500
+    if board.gives_check(move):
+        return 0
+    piece = board.piece_at(move.from_square)
+    if piece is None or piece.piece_type in (chess.PAWN, chess.KING):
+        return 0
+    board.push(move)
+    try:
+        moved = board.piece_at(move.to_square)
+        if moved is None:
+            return 0
+        attackers = board.attackers(not moved.color, move.to_square)
+        if not attackers:
+            return 0
+        defenders = board.attackers(moved.color, move.to_square)
+        # A bare attack on a piece is not enough to call a sacrifice bad.
+        # Only an undefended piece is discouraged, and only as a tie-break.
+        if defenders:
+            return 0
+        return min(180, PIECE_VALUES.get(moved.piece_type, 0) // 4)
+    finally:
+        board.pop()
+
+
+def _root_tactical_safety(board, move):
+    """Hard safety gate for root alternatives; never sacrifice into immediate mate."""
+    if move not in board.legal_moves:
+        return -MATE_SCORE
+    board.push(move)
+    try:
+        if _opponent_has_mate_in_one(board):
+            return -MATE_SCORE // 2
+        return 0
+    finally:
+        board.pop()
+
+
 class Searcher:
-    def __init__(self, tt, orderer, quiescence_depth=8, check_interval=128):
+    def __init__(self, tt, orderer, quiescence_depth=8, check_interval=128, opening_usage=None):
         self.tt = tt
         self.orderer = orderer
         self.quiescence_depth = quiescence_depth
         self.check_interval = check_interval
         self.context = None
+        self.opening_usage = opening_usage if opening_usage is not None else defaultdict(int)
 
     def request_stop(self):
         if self.context is not None:
@@ -1057,14 +1277,20 @@ class Searcher:
         """
         return board.halfmove_clock + max(0, depth) < 150
 
-    def search(self, board, max_depth, time_limit_ms):
+    def search(self, board, max_depth, time_limit_ms, search_seed=None, diversify=False):
         stop_event = Event()
         timer = SearchTimer(time_limit_ms, stop_event, self.check_interval)
+        if search_seed is None:
+            search_seed = secrets.randbits(64)
         self.context = SearchContext(
             timer=timer,
             evaluator=IncrementalEvaluator(board),
             stop_event=stop_event,
             repetition_counts=_build_repetition_counts(board),
+            rng=random.Random(int(search_seed)),
+            game_seed=int(search_seed),
+            diversify=bool(diversify),
+            opponent_profile=_opponent_profile(board),
         )
         self.tt.new_search()
         self.orderer.decay()
@@ -1081,6 +1307,11 @@ class Searcher:
 
         for depth in range(1, max_depth + 1):
             if timer.should_stop(self.context.stats.total_nodes, force=True):
+                break
+            # Preserve a small slice of the budget for final root-candidate
+            # verification; otherwise short AI-vs-AI searches become fully
+            # deterministic because there is no time left to diversify safely.
+            if self.context.diversify and timer.remaining_ms <= ROOT_VARIATION_RESERVE_MS:
                 break
 
             if depth < ASPIRATION_MIN_DEPTH:
@@ -1124,6 +1355,30 @@ class Searcher:
             if abs(best_score) >= MATE_THRESHOLD:
                 break
 
+        if best_move is not None and _root_tactical_safety(board, best_move) <= -MATE_SCORE // 2:
+            safe_alternatives = [
+                item for item in self.context.root_candidates
+                if item[0] != best_move and _root_tactical_safety(board, item[0]) > -MATE_SCORE // 2
+            ]
+            if safe_alternatives:
+                best_move, best_score = max(safe_alternatives, key=lambda item: item[1])
+                best_pv = [best_move]
+
+        if best_move is not None and self.context.diversify and self.context.stats.completed_depth >= 1:
+            selected_move, selected_score = self._select_root_move(
+                board, best_move, best_score, self.context.stats.completed_depth
+            )
+            if selected_move != best_move:
+                best_move = selected_move
+                best_score = selected_score
+                best_pv = [selected_move]
+                verified = self._extract_pv(board, min(self.context.stats.completed_depth, 8))
+                if verified:
+                    best_pv = verified
+            if len(board.move_stack) <= ROOT_OPENING_PLIES:
+                key = (board.turn, len(board.move_stack), best_move.uci())
+                self.opening_usage[key] += 1
+
         self.context.stats.elapsed_ms = timer.elapsed_ms
         return best_move, best_score, best_pv
 
@@ -1137,21 +1392,18 @@ class Searcher:
                 and move.promotion == previous_same_side_move.promotion
                 and move.promotion is None
             ):
-                penalty -= 45
-
-        if not board.move_stack:
-            return penalty
+                penalty -= 60
 
         board.push(move)
         try:
             prior = self.context.repetition_counts.get(board._transposition_key(), 0)
             if prior >= 2:
-                return 0
+                return -200
             if prior == 1:
-                return penalty - 18
-            return penalty
+                penalty -= 35
         finally:
             board.pop()
+        return penalty
 
     def _root(self, board, depth, alpha, beta):
         original_alpha = alpha
@@ -1171,6 +1423,7 @@ class Searcher:
         best_score = -INF
         best_move = moves[0]
         best_pv = []
+        root_candidates = []
         first = True
 
         for move in moves:
@@ -1214,6 +1467,8 @@ class Searcher:
                 return 0, None, []
 
             score += self._root_repetition_adjustment(board, move)
+            score += _root_tactical_safety(board, move)
+            root_candidates.append((move, score))
 
             if score > best_score:
                 best_score = score
@@ -1239,6 +1494,10 @@ class Searcher:
         else:
             bound = Bound.EXACT
 
+        self.context.root_candidates = sorted(
+            root_candidates, key=lambda item: item[1], reverse=True
+        )[:ROOT_DIVERSIFY_MAX_CANDIDATES * 2]
+
         if self._tt_safe(board, depth) and self.context.repetition_counts.get(board._transposition_key(), 0) <= 1:
             self.tt.store(
                 board,
@@ -1252,6 +1511,114 @@ class Searcher:
             )
 
         return best_score, best_move, best_pv
+
+    def _candidate_is_safe_to_verify(self, move):
+        if self.context is None:
+            return False
+        return move is not None and self.context.timer.remaining_ms >= ROOT_VERIFY_MIN_REMAINING_MS
+
+    def _verify_root_candidate(self, board, move, depth):
+        """Re-search one non-best candidate with a full window before it can replace the PV."""
+        self.context.evaluator.push(board, move)
+        board.push(move)
+        child_key = board._transposition_key()
+        prior = self.context.repetition_counts.get(child_key, 0)
+        self.context.repetition_counts[child_key] = prior + 1
+        try:
+            if prior + 1 >= 3:
+                score = 0
+            else:
+                child_score, _ = self._negamax(
+                    board, max(0, depth - 1), -INF, INF, 1, move
+                )
+                score = -child_score
+        finally:
+            self.context.repetition_counts[child_key] -= 1
+            if self.context.repetition_counts[child_key] <= 0:
+                self.context.repetition_counts.pop(child_key, None)
+            board.pop()
+            self.context.evaluator.pop()
+        return score + self._root_repetition_adjustment(board, move)
+
+    def _select_root_move(self, board, best_move, best_score, depth):
+        """Choose among genuinely close moves without allowing randomness to override tactics."""
+        if not self.context.diversify or not self.context.root_candidates:
+            return best_move, best_score
+
+        # Never randomize a forced mate or a clearly winning/losing tactical node.
+        if abs(best_score) >= MATE_THRESHOLD:
+            return best_move, best_score
+        if self.context.timer.remaining_ms < ROOT_VERIFY_MIN_REMAINING_MS and len(board.move_stack) > 0:
+            return best_move, best_score
+
+        margin = _root_diversity_margin(board)
+        # Human-like variation is only permitted inside a much tighter engine
+        # equivalence band once tactics become available.
+        if board.is_check() or len(board.piece_map()) < 20:
+            margin = min(margin, 10)
+        pool = []
+        for move, score in self.context.root_candidates:
+            loss = best_score - score
+            if loss > margin:
+                continue
+            # Do not let seeded variety turn a normal opening into a dubious
+            # edge-knight script. A3/H3 remain legal and available when the
+            # position genuinely demands them, but near-equal alternatives are
+            # preferred over a one-off novelty that merely happens to score close.
+            if len(board.move_stack) == 0 and move.uci() in {"b1a3", "g1h3"} and loss < 35:
+                continue
+            if self._root_repetition_adjustment(board, move) <= -180:
+                continue
+            if _root_tactical_safety(board, move) <= -MATE_SCORE // 2:
+                continue
+            adaptive = _root_move_adaptation(board, move, self.context.opponent_profile)
+            # Encourage unused opening choices, but only inside the engine's equivalence band.
+            opening_penalty = self._opening_usage_penalty(board, move)
+            hanging_penalty = _root_hanging_penalty(board, move)
+            adjusted = score + adaptive + _opening_quality_bias(board, move) - opening_penalty - hanging_penalty
+            pool.append((move, score, adjusted))
+
+        if not pool:
+            return best_move, best_score
+
+        top = max(item[2] for item in pool)
+        temperature = 3.5 if len(board.move_stack) <= ROOT_OPENING_PLIES else 2.0
+        weights = []
+        for move, score, adjusted in pool:
+            weights.append(math.exp(max(-20.0, min(0.0, (adjusted - top) / temperature))))
+        total = sum(weights)
+        pick = self.context.rng.random() * total if self.context.rng else 0.0
+        chosen = pool[0]
+        running = 0.0
+        for item, weight in zip(pool, weights):
+            running += weight
+            if pick <= running:
+                chosen = item
+                break
+
+        candidate, candidate_score, _ = chosen
+        if candidate == best_move:
+            return best_move, best_score
+
+        if not self._candidate_is_safe_to_verify(candidate):
+            # Opening variation is allowed to use an already-search-complete
+            # near-equal principal candidate when the time budget is exhausted.
+            # This avoids falling back to the same first legal move simply
+            # because there is no reserve left for a second full search.
+            if len(board.move_stack) == 0 and candidate_score >= best_score - 5:
+                return candidate, candidate_score
+            return best_move, best_score
+
+        verified = self._verify_root_candidate(board, candidate, depth)
+        if verified >= best_score - margin:
+            return candidate, verified
+        return best_move, best_score
+
+    def _opening_usage_penalty(self, board, move):
+        usage = getattr(self, "opening_usage", None)
+        if usage is None or len(board.move_stack) > ROOT_OPENING_PLIES:
+            return 0
+        return min(10, usage.get((board.turn, len(board.move_stack), move.uci()), 0) * 3)
 
     def _negamax(self, board, depth, alpha, beta, ply, previous_move=None):
         self.context.stats.nodes += 1
@@ -1581,7 +1948,7 @@ class Searcher:
         # Captures and promotions only. A quiet position with no tactical
         # moves is normally a q-leaf; stalemate is checked only in that rare
         # case so ordinary q-nodes avoid a second full legal-move generation.
-        moves = self._quiescence_moves(board)
+        moves = self._quiescence_moves(board, qdepth)
         if not moves:
             if not _has_legal_move(board):
                 return 0
@@ -1618,10 +1985,10 @@ class Searcher:
 
         return alpha
 
-    @staticmethod
-    def _quiescence_moves(board):
-        # Only legal captures and promotions. Checking quiet moves are
-        # intentionally omitted to keep q-search narrow and fast.
+    def _quiescence_moves(self, board, qdepth):
+        # Captures/promotions are always searched. Early checking moves are also
+        # included because quiet checks are a common bridge into mating nets and
+        # were previously invisible to q-search.
         moves = list(board.generate_legal_captures())
 
         promo_rank = (
@@ -1631,6 +1998,14 @@ class Searcher:
         if pawn_mask:
             for move in board.generate_legal_moves(from_mask=pawn_mask):
                 if move.promotion and not board.is_capture(move):
+                    moves.append(move)
+
+        if qdepth < QUIESCENCE_CHECK_DEPTH:
+            existing = set(moves)
+            for move in board.generate_legal_moves():
+                if move in existing:
+                    continue
+                if board.gives_check(move):
                     moves.append(move)
 
         return moves
@@ -1700,17 +2075,26 @@ class ChessEngine:
         self.config = (config or EngineConfig()).validated()
         self.tt = TranspositionTable(self.config.transposition_size)
         self.orderer = MoveOrderer()
+        self.opening_usage = defaultdict(int)
         self.searcher = Searcher(
             self.tt,
             self.orderer,
             quiescence_depth=self.config.quiescence_depth,
             check_interval=self.config.stop_check_interval,
+            opening_usage=self.opening_usage,
         )
 
     def stop(self):
         self.searcher.request_stop()
 
-    def analyze(self, board: chess.Board, max_depth: int | None = None, time_limit_ms: int | None = None) -> EngineResponse:
+    def analyze(
+        self,
+        board: chess.Board,
+        max_depth: int | None = None,
+        time_limit_ms: int | None = None,
+        search_seed: int | None = None,
+        diversify: bool = False,
+    ) -> EngineResponse:
         validate_board(board)
 
         terminal = game_terminal_state(board)
@@ -1739,6 +2123,8 @@ class ChessEngine:
             work,
             max_depth=max_depth if max_depth is not None else self.config.max_depth,
             time_limit_ms=time_limit_ms if time_limit_ms is not None else self.config.time_limit_ms,
+            search_seed=search_seed if search_seed is not None else secrets.randbits(64),
+            diversify=bool(diversify and self.config.diversify_opening),
         )
 
         if move is None or move not in work.legal_moves:
@@ -1777,7 +2163,8 @@ SITE_ROOT = AI_DIR.parent
 HOST = os.environ.get("CHESSMIND_HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", os.environ.get("CHESSMIND_PORT", "8080")))
 ENGINE_LOCK = threading.RLock()
-ENGINE = ChessEngine(EngineConfig(max_depth=18, time_limit_ms=2500, transposition_size=131_072, quiescence_depth=10, stop_check_interval=128))
+ENGINE = ChessEngine(EngineConfig(max_depth=20, time_limit_ms=2500, transposition_size=262_144, quiescence_depth=14, stop_check_interval=96))
+STOCKFISH = StockfishBridge() if StockfishBridge is not None else None
 
 
 def _history_list(value):
@@ -1881,17 +2268,35 @@ def state_payload(board: chess.Board, last_move: str | None = None, analysis: di
     return payload
 
 
-def safe_engine_analysis(board: chess.Board, depth: int, time_ms: int) -> dict:
+def safe_engine_analysis(board: chess.Board, depth: int, time_ms: int, search_seed: int | None = None, diversify: bool = False) -> dict:
+    if STOCKFISH is not None and STOCKFISH.available:
+        try:
+            with ENGINE_LOCK:
+                return STOCKFISH.analyze(
+                    board.copy(stack=True),
+                    time_ms=max(100, min(int(time_ms), 120000)),
+                    depth=max(1, min(int(depth), 30)),
+                    diversify=diversify,
+                    seed=search_seed,
+                )
+        except Exception as exc:
+            # Fall through to the original Python engine without changing the API.
+            native_error = str(exc)
+        else:
+            native_error = None
+    else:
+        native_error = "Stockfish executable not installed"
+
     configs = [
         (max(1, min(depth, 18)), max(100, min(time_ms, 120000))),
         (max(1, min(depth, 10)), max(150, min(time_ms, 1200))),
     ]
-    last_error = None
+    last_error = native_error
     for use_depth, use_time in configs:
         try:
             work = board.copy(stack=True)
             with ENGINE_LOCK:
-                response = ENGINE.analyze(work, max_depth=use_depth, time_limit_ms=use_time)
+                response = ENGINE.analyze(work, max_depth=use_depth, time_limit_ms=use_time, search_seed=search_seed, diversify=diversify)
             if response.best_move_uci:
                 candidate = chess.Move.from_uci(response.best_move_uci)
                 if candidate in work.legal_moves:
@@ -1965,7 +2370,7 @@ def safe_engine_analysis(board: chess.Board, depth: int, time_ms: int) -> dict:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "SuyashChessMind/2.0"
+    server_version = "SuyashChessMind/3.0"
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
@@ -1991,9 +2396,10 @@ class Handler(SimpleHTTPRequestHandler):
             if path == "/api/chessmind/health":
                 self.send_json({
                     "ok": True,
-                    "engine": "ChessMind Core 2.0 Refined",
+                    "engine": "ChessMind Final Adaptive",
+                    "backend": "Stockfish 19" if STOCKFISH is not None and STOCKFISH.available else "ChessMind Python fallback",
                     "python": sys.version.split()[0],
-                    "features": ["anti-repetition", "mate-first", "shared-transposition-table", "AI-vs-AI", "fixed-square-board"],
+                    "features": ["mate-first", "mate-safety-gate", "sacrifice-aware-selection", "adaptive-opening", "opponent-profile", "seeded-variation", "anti-repetition", "shared-transposition-table", "AI-vs-AI", "optional-stockfish-19"],
                 })
                 return
             super().do_GET()
@@ -2026,7 +2432,10 @@ class Handler(SimpleHTTPRequestHandler):
                 board = board_from_request(body.get("fen", "start"), body.get("history_uci", []))
                 depth = max(1, min(18, int(body.get("depth", 10))))
                 time_ms = max(100, min(120000, int(body.get("time_ms", 2500))))
-                result = safe_engine_analysis(board, depth, time_ms)
+                raw_seed = body.get("seed")
+                seed = None if raw_seed in (None, "") else int(raw_seed)
+                diversify = bool(body.get("diversify", False))
+                result = safe_engine_analysis(board, depth, time_ms, search_seed=seed, diversify=diversify)
                 self.send_json(result)
                 return
 

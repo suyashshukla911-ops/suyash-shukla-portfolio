@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: chessmind
+    env: python
+    buildCommand: pip install -r requirements.txt && python tools/install_stockfish.py --platform linux
+    startCommand: python server.py
+    autoDeploy: true

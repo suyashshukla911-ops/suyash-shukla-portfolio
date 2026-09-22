@@ -3,9 +3,9 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 
 echo.
-echo ==========================================
-echo   ChessMind AI 2.0 - Windows Launcher
-echo ==========================================
+echo ================================================
+echo   ChessMind Final Adaptive ^| Stockfish 19 layer
+echo ================================================
 echo.
 
 set "PY_EXE="
@@ -56,9 +56,16 @@ if errorlevel 1 (
 )
 
 echo.
-echo Starting ChessMind AI 2.0...
+echo Checking Stockfish 19...
+if not exist "%CD%\engines\stockfish\stockfish.exe" (
+  "%VENV_PY%" "%CD%\tools\install_stockfish.py" --platform windows
+  if errorlevel 1 echo [WARN] Stockfish download failed. ChessMind will use its internal Python fallback.
+)
+
+echo.
+echo Starting ChessMind Final Adaptive...
 echo Open http://127.0.0.1:8080/AI/chessmind/web/index.html
-start "ChessMind AI 2.0" http://127.0.0.1:8080/AI/chessmind/web/index.html
+start "ChessMind Final Adaptive" http://127.0.0.1:8080/AI/chessmind/web/index.html
 
 echo.
 "%VENV_PY%" server.py

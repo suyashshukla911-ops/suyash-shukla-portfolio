@@ -181,8 +181,10 @@
       : REMOTE_API;
     const GLYPH = {P:'♙',N:'♘',B:'♗',R:'♖',Q:'♕',K:'♔',p:'♟',n:'♞',b:'♝',r:'♜',q:'♛',k:'♚'};
     const files='abcdefgh';
-    let state=null, selected=null, stack=[], busy=false, human='white', aiVsAi=false, aiVsAiToken=0;
+    let state=null, selected=null, stack=[], busy=false, human='white', aiVsAi=false, aiVsAiToken=0, gameSeed=0;
     const $=id=>document.getElementById(id);
+    function newGameSeed(){const a=new Uint32Array(2);if(window.crypto?.getRandomValues){window.crypto.getRandomValues(a);return (BigInt(a[0])<<32n)|BigInt(a[1]);}return BigInt(Math.floor(Math.random()*2**32))*4294967296n+BigInt(Math.floor(Math.random()*2**32));}
+    function seedForApi(){return gameSeed.toString();}
 
     function parseFen(f){
       const rows=f.split(' ')[0].split('/'); const m={};
@@ -266,7 +268,7 @@
     }
 
     async function newGame(){
-      aiVsAi=false;aiVsAiToken++;if(busy)return;closeResult();stack=[];state=null;render();
+      aiVsAi=false;aiVsAiToken++;if(busy)return;closeResult();stack=[];gameSeed=newGameSeed();state=null;render();
       await load('start',[]);$('message').textContent='Your move — select a white piece.';
     }
     async function play(uci,auto=false){
@@ -283,7 +285,7 @@
       if(!state||state.terminal)return;
       busy=true;$('message').textContent='ChessMind is calculating…';render();
       try{
-        const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||2500,depth:Number($('maxDepth').value)||10});
+        const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||2500,depth:Number($('maxDepth').value)||10,seed:seedForApi(),diversify:true});
         state.analysis=a;render();
         if(!a.best_move_uci){$('message').textContent=a.terminal_kind||'No legal move.';if(a.terminal)showResult();return}
         const before=snapshot();stack.push(before);
@@ -306,15 +308,15 @@
       else{$('message').textContent='Select one of your pieces.';render()}
     }
     async function undo(){if(busy||!stack.length||aiVsAi)return;const snap=stack.pop();await load(snap.fen,snap.history_uci);$('message').textContent='Move undone.'}
-    async function analyze(){if(busy||!state||state.terminal)return;busy=true;$('message').textContent='Running analysis…';render();try{const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||2500,depth:Number($('maxDepth').value)||10});state.analysis=a;render();$('message').textContent=a.fallback?'Analysis used the legal-move safety fallback.':'Analysis complete.'}catch(e){$('message').textContent=e.message}finally{busy=false;render()}}
+    async function analyze(){if(busy||!state||state.terminal)return;busy=true;$('message').textContent='Running analysis…';render();try{const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||2500,depth:Number($('maxDepth').value)||10,seed:seedForApi(),diversify:true});state.analysis=a;render();$('message').textContent=a.fallback?'Analysis used the legal-move safety fallback.':'Analysis complete.'}catch(e){$('message').textContent=e.message}finally{busy=false;render()}}
 
     async function aiVsAiLoop(){
-      const token=++aiVsAiToken;aiVsAi=true;closeResult();stack=[];await load('start',[]);$('message').textContent='AI vs AI showcase running…';render();
+      const token=++aiVsAiToken;aiVsAi=true;closeResult();stack=[];gameSeed=newGameSeed();await load('start',[]);$('message').textContent='AI vs AI showcase running…';render();
       let plies=0;
       while(aiVsAi&&token===aiVsAiToken&&state&&!state.terminal&&plies<300){
         busy=true;$('message').textContent=`AI ${state.turn.toUpperCase()} is calculating…`;render();
         try{
-          const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||900,depth:Number($('maxDepth').value)||7});
+          const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||900,depth:Number($('maxDepth').value)||7,seed:seedForApi(),diversify:true});
           if(!aiVsAi||token!==aiVsAiToken)break;
           state.analysis=a;render();
           if(!a.best_move_uci){if(a.terminal)showResult();break}
@@ -336,6 +338,7 @@
     $('new').onclick=newGame;$('undo').onclick=undo;$('analyze').onclick=analyze;$('aivai').onclick=toggleAiVsAi;$('resultNew').onclick=newGame;
     $('resultOverlay').addEventListener('click',e=>{if(e.target.id==='resultOverlay')closeResult()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeResult()});
 
+    gameSeed=newGameSeed();
     $('statusText').textContent='CONNECTING';
     api('/health').then(()=>{$('statusText').textContent='ENGINE READY';$('status').classList.add('ok');return newGame()}).catch(e=>{$('statusText').textContent='SERVER OFFLINE';$('message').textContent=e.message;});
   </script>

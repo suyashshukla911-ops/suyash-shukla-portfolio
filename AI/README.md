@@ -1,22 +1,59 @@
-# ChessMind AI 2.0 — refined website build
+# ChessMind Final Adaptive
 
-This package intentionally keeps the portfolio integration untouched.
+This build preserves the existing ChessMind website implementation. The frontend
+files were not changed. The backend now uses a two-layer decision architecture:
 
-## Runtime layout
-- `server.py` — single Python server + complete chess engine core + API.
-- `chessmind/web/index.html` — single interactive chess client, including AI-vs-AI mode.
-- `chessmind/portfolio-integration.js` — existing portfolio glue, unchanged.
-- `chessmind/portfolio-ai.css` — existing portfolio glue styling, unchanged.
-- `run_ai.bat` — Windows launcher.
-- `CHECK_CHESSMIND.bat` — direct local launcher.
+1. **Stockfish 19 primary calculator** when the official executable is installed.
+2. **ChessMind Python fallback** when it is not, with the previous search stack plus
+   stronger mate-safety and root-risk handling.
 
-## Main refinements
-- Rebuilds the real move stack from UCI history, so threefold repetition detection survives the web/FEN boundary.
-- Treats third repetitions as draw nodes during search and penalizes immediate backtracking / repeated positions at the root.
-- Shared engine/transposition table across requests instead of recreating the complete engine for every AI move.
-- Mate-aware iterative deepening, quiescence, null move, LMR, PVS, TT, check extensions, history/killer/countermove ordering from the supplied optimized build.
-- Fixed-size 8×8 board grid with explicit 8 equal rows and columns.
-- AI-vs-AI showcase mode.
-- Local web UI automatically targets the local API; production keeps the existing Render API URL.
+## Logic refinements
 
-No file under the root portfolio was modified.
+- Mate and forced tactical lines take priority over material safety.
+- Near-best variation is allowed only when it remains inside a tight evaluation band.
+- A seeded decision layer varies close opening choices instead of replaying one script.
+- Opening choices react to the opponent's early queen moves, wing-pawn expansion,
+  repeated-piece movement, and recent piece usage.
+- Dubious edge-knight opening moves are filtered out when normal alternatives are
+  engine-equivalent.
+- Obvious unforced piece hangs are penalized only at the variation tie-break layer;
+  genuine sacrifices remain available when the engine itself values them.
+- Immediate opponent-mate threats are hard-gated at the root.
+- Repetition history is rebuilt from UCI move history across the web/FEN boundary.
+- AI-vs-AI uses game seeds and near-best choices, so identical positions do not
+  always generate an identical opening script.
+
+## Strong-engine mode
+
+The recommended runtime is Stockfish 19. Stockfish 19 was released on 2026-09-05
+and introduced SFNNv16 plus additional training improvements. ChessMind does not
+claim to reproduce Magnus Carlsen's human brain or to be literally unbeatable.
+Instead, it uses Stockfish's calculation strength and adds a bounded adaptive layer
+for opening variation and human-like move selection.
+
+### Windows
+
+Run `run_ai.bat`. It creates the virtual environment, installs python-chess, then
+tries to download the official Stockfish 19 Windows universal binary into
+`engines/stockfish/`.
+
+### Render/Linux
+
+`render.yaml` downloads the official Stockfish 19 Linux universal binary during the
+build and launches `server.py`.
+
+### Manual installation
+
+The installer uses these official Stockfish 19 release assets:
+
+- Windows x86-64 universal:
+  https://github.com/official-stockfish/Stockfish/releases/latest/download/stockfish-windows-x86-64-universal.zip
+- Linux x86-64 universal:
+  https://github.com/official-stockfish/Stockfish/releases/latest/download/stockfish-linux-x86-64-universal.tar.gz
+
+You can also set `CHESSMIND_STOCKFISH_PATH` to an existing Stockfish executable.
+
+## API contract
+
+The existing `/api/chessmind/state`, `/api/chessmind/play`, `/api/chessmind/analyze`
+and `/api/chessmind/health` endpoints remain unchanged.

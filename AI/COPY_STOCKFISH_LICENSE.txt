@@ -1,0 +1,9 @@
+ChessMind optionally uses Stockfish 19 as the native chess calculation backend.
+
+Stockfish is free and open source software released under the GNU General Public
+License, version 3 (GPLv3). This project downloads the official binary at setup
+rather than redistributing a modified Stockfish executable.
+
+Official source/download information:
+https://stockfishchess.org/download/
+https://github.com/official-stockfish/Stockfish/releases/tag/sf_19
