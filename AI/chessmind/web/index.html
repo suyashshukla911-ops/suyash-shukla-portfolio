@@ -1,93 +1,765 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#102a28">
   <title>ChessMind AI · Grandmaster Mode</title>
   <style>
-    :root{
-      --bg:#eee7d8;--surface:#fffaf0;--surface-2:#f7f0e3;--border:#c7baa5;
-      --text:#24231f;--muted:#686154;--cyan:#2f7f78;--cyan-2:#3d978f;
-      --dark:#87948d;--light:#eadfc9;--danger:#a3484f;--check-bg:#f8e7e4;
-      --shadow:0 24px 70px rgba(60,48,32,.16);--radius:18px
+    :root {
+      --bg: #eee7d8;
+      --surface: #fffaf0;
+      --surface-2: #f7f0e3;
+      --border: #c7baa5;
+      --text: #24231f;
+      --muted: #686154;
+      --cyan: #2f7f78;
+      --cyan-2: #3d978f;
+      --dark: #87948d;
+      --light: #eadfc9;
+      --danger: #a3484f;
+      --check-bg: #f8e7e4;
+      --shadow: 0 24px 70px rgba(60, 48, 32, .16);
+      --radius: 18px
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#faf6ee 0,#eee7d8 48%,#e5dbc8 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    body{padding:18px}
-    button,input,select{font:inherit}
-    button{appearance:none}
-    .app{width:min(1320px,100%);margin:auto}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
-    .eyebrow{font:600 .64rem/1.2 "JetBrains Mono",Consolas,monospace;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
-    .title{margin-top:3px;font:800 clamp(1.5rem,3vw,2.15rem)/1.05 "Space Grotesk",Inter,sans-serif;letter-spacing:-.03em}
-    .sub{margin-top:4px;color:var(--muted);font:500 .72rem/1.5 "JetBrains Mono",Consolas,monospace;letter-spacing:.02em}
-    .status{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,250,240,.74);font:700 .64rem "JetBrains Mono",Consolas,monospace;letter-spacing:.07em;white-space:nowrap}
-    .status-dot{width:8px;height:8px;border-radius:50%;background:#a98d70;box-shadow:0 0 0 5px rgba(169,141,112,.12)}
-    .status.ok{color:var(--cyan);border-color:rgba(47,127,120,.55)}
-    .status.ok .status-dot{background:var(--cyan);box-shadow:0 0 0 5px rgba(47,127,120,.12)}
-    .status.busy .status-dot{animation:pulse 1s ease-in-out infinite}
 
-    .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
-    .panel{background:rgba(255,250,240,.86);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .board-panel{padding:16px}
-    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:13px}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{border:1px solid var(--border);background:rgba(255,250,240,.84);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:700;transition:transform .16s ease,border-color .16s ease,background .16s ease,color .16s ease,box-shadow .16s ease}
-    .btn:hover:not(:disabled){transform:translateY(-1px);border-color:var(--cyan);color:var(--cyan);box-shadow:0 8px 18px rgba(47,127,120,.08)}
-    .btn:active:not(:disabled){transform:translateY(0)}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
-    .btn.primary{background:var(--cyan);border-color:var(--cyan);color:#fff;box-shadow:0 7px 18px rgba(47,127,120,.18)}
-    .btn.primary:hover:not(:disabled){background:var(--cyan-2);color:#fff}
-    .mode-chip{padding:8px 10px;border-radius:999px;border:1px solid rgba(47,127,120,.28);background:rgba(47,127,120,.07);color:var(--cyan);font:700 .63rem "JetBrains Mono",Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}
+    * {
+      box-sizing: border-box
+    }
 
-    .board-shell{width:min(680px,100%);margin:0 auto;position:relative}
-    .board{width:100%;aspect-ratio:1/1;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--light);touch-action:manipulation}
-    .sq{position:relative;width:100%;height:100%;min-width:0;min-height:0;border:0;margin:0;padding:0;display:grid;place-items:center;overflow:hidden;cursor:pointer;line-height:1}
-    .sq.light{background:var(--light)}.sq.dark{background:var(--dark)}
-    .sq:hover{filter:brightness(1.03)}
-    .sq.selected{box-shadow:inset 0 0 0 4px rgba(47,127,120,.96);z-index:2}
-    .sq.last-from{box-shadow:inset 0 0 0 999px rgba(120,105,157,.22),inset 0 0 0 2px rgba(120,105,157,.52)}
-    .sq.last-to{box-shadow:inset 0 0 0 999px rgba(47,127,120,.16),inset 0 0 0 3px rgba(47,127,120,.86)}
-    .sq.check-king{box-shadow:inset 0 0 0 4px rgba(163,72,79,.92);animation:checkPulse 1s ease-in-out infinite}
-    .sq.target::after{content:"";position:absolute;width:20%;height:20%;border-radius:50%;background:rgba(47,127,120,.6);z-index:3;pointer-events:none}
-    .sq.capture::after{content:"";position:absolute;inset:10%;border:4px solid rgba(47,127,120,.62);border-radius:50%;z-index:3;pointer-events:none}
-    .piece{display:block;position:relative;z-index:2;font-family:"Segoe UI Symbol","Arial Unicode MS","DejaVu Serif",serif;font-variant-emoji:text;font-size:clamp(31px,6.8vw,67px);line-height:1;user-select:none;transition:transform .16s ease,filter .16s ease}
-    .sq:hover .piece{transform:translateY(-1px) scale(1.025)}
-    .piece.white{color:#fff;-webkit-text-stroke:1.3px #5d5a54;text-shadow:0 2px 2px rgba(0,0,0,.24)}
-    .piece.black{color:#050505;-webkit-text-stroke:.5px #050505;text-shadow:0 1px 1px rgba(255,255,255,.32)}
-    .coord{position:absolute;z-index:4;pointer-events:none;color:rgba(43,41,37,.56);font:700 9px "JetBrains Mono",Consolas,monospace}
-    .coord.file{right:5px;bottom:4px}.coord.rank{left:5px;top:4px}
-    .move-marker{position:absolute;top:4px;left:50%;transform:translateX(-50%);z-index:5;padding:2px 5px;border-radius:999px;background:rgba(43,41,37,.8);color:#fff;font:700 8px "JetBrains Mono",Consolas,monospace;letter-spacing:.06em;pointer-events:none}
-    .sq.last-to .move-marker{background:var(--cyan)}
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at top, #faf6ee 0, #eee7d8 48%, #e5dbc8 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+    }
 
-    .board-footer{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-top:11px}
-    .turn{font:800 .76rem "JetBrains Mono",Consolas,monospace;letter-spacing:.04em}.message{min-height:20px;color:var(--muted);font:600 .72rem/1.45 "JetBrains Mono",Consolas,monospace;text-align:right}
-    .lastmove{margin-top:8px;color:var(--text);font:700 .66rem "JetBrains Mono",Consolas,monospace;letter-spacing:.05em}
-    .state-alert{display:none;margin-top:10px;padding:10px 12px;border:1px solid rgba(163,72,79,.35);border-radius:10px;background:var(--check-bg);color:var(--danger);font:600 .66rem/1.5 "JetBrains Mono",Consolas,monospace}
-    .state-alert.open{display:block}
-    .selection-info{min-height:19px;margin-top:7px;color:var(--cyan);font:700 .62rem "JetBrains Mono",Consolas,monospace;letter-spacing:.06em}
+    body {
+      padding: 18px
+    }
 
-    aside{padding:16px}
-    .section+.section{border-top:1px solid var(--border);margin-top:15px;padding-top:15px}
-    .label{color:var(--muted);font:700 .62rem "JetBrains Mono",Consolas,monospace;letter-spacing:.09em;text-transform:uppercase}
-    .value{margin-top:4px;font:800 2rem/1 "Space Grotesk",Inter,sans-serif}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
-    .stat{border:1px solid var(--border);border-radius:10px;padding:9px;background:rgba(247,240,227,.55)}
-    .stat span{display:block;color:var(--muted);font:700 .57rem "JetBrains Mono",Consolas,monospace;text-transform:uppercase}.stat strong{display:block;margin-top:5px;font:800 .78rem "JetBrains Mono",Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .field{margin:9px 0}.field label{display:block;margin-bottom:5px;color:var(--muted);font:700 .59rem "JetBrains Mono",Consolas,monospace;letter-spacing:.04em}.field input,.field select{width:100%;padding:8px 9px;border:1px solid var(--border);border-radius:9px;background:#fffdf8;color:var(--text);outline:none}.field input:focus,.field select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(47,127,120,.08)}
-    .preset-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:8px}.preset{padding:7px 6px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font:700 .57rem "JetBrains Mono",Consolas,monospace;cursor:pointer}.preset:hover{border-color:var(--cyan);color:var(--cyan)}
-    .pv,.history{font:600 .67rem/1.7 "JetBrains Mono",Consolas,monospace;color:var(--muted);word-break:break-word}.pv{min-height:40px}.history{max-height:248px;overflow:auto;margin-top:7px;border:1px solid var(--border);border-radius:10px;padding:8px;background:#fffdf8}.move-row{display:grid;grid-template-columns:34px 1fr 1fr;gap:5px;padding:5px 6px;border-radius:7px}.move-row.latest{background:rgba(47,127,120,.1);outline:1px solid rgba(47,127,120,.16)}.no-moves{opacity:.75}
-    .thinkbar{display:none;margin-top:10px;height:6px;border-radius:999px;overflow:hidden;background:rgba(47,127,120,.1)}.thinkbar.open{display:block}.thinkbar::before{content:"";display:block;width:32%;height:100%;border-radius:inherit;background:var(--cyan);animation:thinking 1.15s ease-in-out infinite}
-    .tip{margin-top:8px;color:var(--muted);font:500 .59rem/1.5 "JetBrains Mono",Consolas,monospace}
+    button,
+    input,
+    select {
+      font: inherit
+    }
 
-    .result-overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:18px;background:rgba(43,41,37,.6);backdrop-filter:blur(9px);opacity:0;visibility:hidden;pointer-events:none;transition:.2s ease}.result-overlay.open{opacity:1;visibility:visible;pointer-events:auto}.result-card{width:min(460px,100%);padding:28px;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 28px 80px rgba(45,36,24,.28);text-align:center;transform:translateY(10px) scale(.98);transition:.22s ease}.result-overlay.open .result-card{transform:none}.result-kicker{color:var(--cyan);font:700 .63rem "JetBrains Mono",Consolas,monospace;letter-spacing:.1em;text-transform:uppercase}.result-title{margin:9px 0;font:800 clamp(2.2rem,8vw,3.7rem)/1 "Space Grotesk",Inter,sans-serif}.result-text{margin-bottom:18px;color:var(--muted);font-size:.94rem}.result-card.win .result-title{color:var(--cyan)}.result-card.lose .result-title{color:var(--danger)}
-    @keyframes thinking{0%{transform:translateX(-120%)}100%{transform:translateX(330%)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}@keyframes checkPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(.94)}}
-    @media(max-width:960px){.layout{grid-template-columns:1fr}.board-shell{width:min(680px,100%)}aside{padding-top:0}}
-    @media(max-width:560px){body{padding:10px}.top{align-items:flex-start}.status{font-size:.57rem;padding:7px 9px}.sub{font-size:.61rem}.board-panel{padding:10px}.piece{font-size:clamp(29px,9.4vw,58px)}.toolbar{margin-bottom:10px}.actions{gap:6px}.btn{padding:8px 10px;font-size:.76rem}.board-footer{grid-template-columns:1fr;gap:4px}.message{text-align:left}.preset-row{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+    button {
+      appearance: none
+    }
+
+    .app {
+      width: min(1320px, 100%);
+      margin: auto
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px
+    }
+
+    .eyebrow {
+      font: 600 .64rem/1.2 "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .14em;
+      color: var(--cyan);
+      text-transform: uppercase
+    }
+
+    .title {
+      margin-top: 3px;
+      font: 800 clamp(1.5rem, 3vw, 2.15rem)/1.05 "Space Grotesk", Inter, sans-serif;
+      letter-spacing: -.03em
+    }
+
+    .sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font: 500 .72rem/1.5 "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .02em
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 250, 240, .74);
+      font: 700 .64rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .07em;
+      white-space: nowrap
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #a98d70;
+      box-shadow: 0 0 0 5px rgba(169, 141, 112, .12)
+    }
+
+    .status.ok {
+      color: var(--cyan);
+      border-color: rgba(47, 127, 120, .55)
+    }
+
+    .status.ok .status-dot {
+      background: var(--cyan);
+      box-shadow: 0 0 0 5px rgba(47, 127, 120, .12)
+    }
+
+    .status.busy .status-dot {
+      animation: pulse 1s ease-in-out infinite
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start
+    }
+
+    .panel {
+      background: rgba(255, 250, 240, .86);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden
+    }
+
+    .board-panel {
+      padding: 16px
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 13px
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: rgba(255, 250, 240, .84);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 8px 18px rgba(47, 127, 120, .08)
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0)
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .btn.primary {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: #fff;
+      box-shadow: 0 7px 18px rgba(47, 127, 120, .18)
+    }
+
+    .btn.primary:hover:not(:disabled) {
+      background: var(--cyan-2);
+      color: #fff
+    }
+
+    .mode-chip {
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(47, 127, 120, .28);
+      background: rgba(47, 127, 120, .07);
+      color: var(--cyan);
+      font: 700 .63rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    .board-shell {
+      width: min(680px, 100%);
+      margin: 0 auto;
+      position: relative
+    }
+
+    .board {
+      width: 100%;
+      aspect-ratio: 1/1;
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-rows: repeat(8, minmax(0, 1fr));
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--light);
+      touch-action: manipulation
+    }
+
+    .sq {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      border: 0;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      cursor: pointer;
+      line-height: 1
+    }
+
+    .sq.light {
+      background: var(--light)
+    }
+
+    .sq.dark {
+      background: var(--dark)
+    }
+
+    .sq:hover {
+      filter: brightness(1.03)
+    }
+
+    .sq.selected {
+      box-shadow: inset 0 0 0 4px rgba(47, 127, 120, .96);
+      z-index: 2
+    }
+
+    .sq.last-from {
+      box-shadow: inset 0 0 0 999px rgba(120, 105, 157, .22), inset 0 0 0 2px rgba(120, 105, 157, .52)
+    }
+
+    .sq.last-to {
+      box-shadow: inset 0 0 0 999px rgba(47, 127, 120, .16), inset 0 0 0 3px rgba(47, 127, 120, .86)
+    }
+
+    .sq.check-king {
+      box-shadow: inset 0 0 0 4px rgba(163, 72, 79, .92);
+      animation: checkPulse 1s ease-in-out infinite
+    }
+
+    .sq.target::after {
+      content: "";
+      position: absolute;
+      width: 20%;
+      height: 20%;
+      border-radius: 50%;
+      background: rgba(47, 127, 120, .6);
+      z-index: 3;
+      pointer-events: none
+    }
+
+    .sq.capture::after {
+      content: "";
+      position: absolute;
+      inset: 10%;
+      border: 4px solid rgba(47, 127, 120, .62);
+      border-radius: 50%;
+      z-index: 3;
+      pointer-events: none
+    }
+
+    /* Solid chess pieces: use the filled (black) chess glyph set and
+       recolor it per side. This avoids the thin outline-style white glyphs. */
+    .piece {
+      display: block;
+      position: relative;
+      z-index: 2;
+      font-family: "DejaVu Sans", "Segoe UI Symbol", "Arial Unicode MS", serif;
+      font-variant-emoji: text;
+      font-size: clamp(36px, 7vw, 72px);
+      line-height: 1;
+      user-select: none;
+      transform: translateY(-1px);
+      transition: transform .16s ease, filter .16s ease;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .sq:hover .piece {
+      transform: translateY(-2px) scale(1.035)
+    }
+
+    .piece.white {
+      color: #fff;
+      -webkit-text-stroke: 1.6px #4a4741;
+      text-shadow: 0 2px 3px rgba(0, 0, 0, .28);
+      paint-order: stroke fill;
+    }
+
+    .piece.black {
+      color: #111;
+      -webkit-text-stroke: .45px #111;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, .28);
+    }
+
+    .coord {
+      position: absolute;
+      z-index: 4;
+      pointer-events: none;
+      color: rgba(43, 41, 37, .56);
+      font: 700 9px "JetBrains Mono", Consolas, monospace
+    }
+
+    .coord.file {
+      right: 5px;
+      bottom: 4px
+    }
+
+    .coord.rank {
+      left: 5px;
+      top: 4px
+    }
+
+    .move-marker {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      padding: 2px 5px;
+      border-radius: 999px;
+      background: rgba(43, 41, 37, .8);
+      color: #fff;
+      font: 700 8px "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .06em;
+      pointer-events: none
+    }
+
+    .sq.last-to .move-marker {
+      background: var(--cyan)
+    }
+
+    .board-footer {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 11px
+    }
+
+    .turn {
+      font: 800 .76rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .04em
+    }
+
+    .message {
+      min-height: 20px;
+      color: var(--muted);
+      font: 600 .72rem/1.45 "JetBrains Mono", Consolas, monospace;
+      text-align: right
+    }
+
+    .lastmove {
+      margin-top: 8px;
+      color: var(--text);
+      font: 700 .66rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .05em
+    }
+
+    .state-alert {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid rgba(163, 72, 79, .35);
+      border-radius: 10px;
+      background: var(--check-bg);
+      color: var(--danger);
+      font: 600 .66rem/1.5 "JetBrains Mono", Consolas, monospace
+    }
+
+    .state-alert.open {
+      display: block
+    }
+
+    .selection-info {
+      min-height: 19px;
+      margin-top: 7px;
+      color: var(--cyan);
+      font: 700 .62rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .06em
+    }
+
+    aside {
+      padding: 16px
+    }
+
+    .section+.section {
+      border-top: 1px solid var(--border);
+      margin-top: 15px;
+      padding-top: 15px
+    }
+
+    .label {
+      color: var(--muted);
+      font: 700 .62rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .09em;
+      text-transform: uppercase
+    }
+
+    .value {
+      margin-top: 4px;
+      font: 800 2rem/1 "Space Grotesk", Inter, sans-serif
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 13px
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px;
+      background: rgba(247, 240, 227, .55)
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font: 700 .57rem "JetBrains Mono", Consolas, monospace;
+      text-transform: uppercase
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 5px;
+      font: 800 .78rem "JetBrains Mono", Consolas, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .field {
+      margin: 9px 0
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font: 700 .59rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .04em
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 8px 9px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: #fffdf8;
+      color: var(--text);
+      outline: none
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(47, 127, 120, .08)
+    }
+
+    .preset-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 7px;
+      margin-top: 8px
+    }
+
+    .preset {
+      padding: 7px 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font: 700 .57rem "JetBrains Mono", Consolas, monospace;
+      cursor: pointer
+    }
+
+    .preset:hover {
+      border-color: var(--cyan);
+      color: var(--cyan)
+    }
+
+    .pv,
+    .history {
+      font: 600 .67rem/1.7 "JetBrains Mono", Consolas, monospace;
+      color: var(--muted);
+      word-break: break-word
+    }
+
+    .pv {
+      min-height: 40px
+    }
+
+    .history {
+      max-height: 248px;
+      overflow: auto;
+      margin-top: 7px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fffdf8
+    }
+
+    .move-row {
+      display: grid;
+      grid-template-columns: 34px 1fr 1fr;
+      gap: 5px;
+      padding: 5px 6px;
+      border-radius: 7px
+    }
+
+    .move-row.latest {
+      background: rgba(47, 127, 120, .1);
+      outline: 1px solid rgba(47, 127, 120, .16)
+    }
+
+    .no-moves {
+      opacity: .75
+    }
+
+    .thinkbar {
+      display: none;
+      margin-top: 10px;
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(47, 127, 120, .1)
+    }
+
+    .thinkbar.open {
+      display: block
+    }
+
+    .thinkbar::before {
+      content: "";
+      display: block;
+      width: 32%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--cyan);
+      animation: thinking 1.15s ease-in-out infinite
+    }
+
+    .tip {
+      margin-top: 8px;
+      color: var(--muted);
+      font: 500 .59rem/1.5 "JetBrains Mono", Consolas, monospace
+    }
+
+    .result-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(43, 41, 37, .6);
+      backdrop-filter: blur(9px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: .2s ease
+    }
+
+    .result-overlay.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto
+    }
+
+    .result-card {
+      width: min(460px, 100%);
+      padding: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 28px 80px rgba(45, 36, 24, .28);
+      text-align: center;
+      transform: translateY(10px) scale(.98);
+      transition: .22s ease
+    }
+
+    .result-overlay.open .result-card {
+      transform: none
+    }
+
+    .result-kicker {
+      color: var(--cyan);
+      font: 700 .63rem "JetBrains Mono", Consolas, monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase
+    }
+
+    .result-title {
+      margin: 9px 0;
+      font: 800 clamp(2.2rem, 8vw, 3.7rem)/1 "Space Grotesk", Inter, sans-serif
+    }
+
+    .result-text {
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: .94rem
+    }
+
+    .result-card.win .result-title {
+      color: var(--cyan)
+    }
+
+    .result-card.lose .result-title {
+      color: var(--danger)
+    }
+
+    @keyframes thinking {
+      0% {
+        transform: translateX(-120%)
+      }
+
+      100% {
+        transform: translateX(330%)
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .45
+      }
+    }
+
+    @keyframes checkPulse {
+
+      0%,
+      100% {
+        filter: brightness(1)
+      }
+
+      50% {
+        filter: brightness(.94)
+      }
+    }
+
+    @media(max-width:960px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+
+      .board-shell {
+        width: min(680px, 100%)
+      }
+
+      aside {
+        padding-top: 0
+      }
+    }
+
+    @media(max-width:560px) {
+      body {
+        padding: 10px
+      }
+
+      .top {
+        align-items: flex-start
+      }
+
+      .status {
+        font-size: .57rem;
+        padding: 7px 9px
+      }
+
+      .sub {
+        font-size: .61rem
+      }
+
+      .board-panel {
+        padding: 10px
+      }
+
+      .piece {
+        font-size: clamp(29px, 9.4vw, 58px)
+      }
+
+      .toolbar {
+        margin-bottom: 10px
+      }
+
+      .actions {
+        gap: 6px
+      }
+
+      .btn {
+        padding: 8px 10px;
+        font-size: .76rem
+      }
+
+      .board-footer {
+        grid-template-columns: 1fr;
+        gap: 4px
+      }
+
+      .message {
+        text-align: left
+      }
+
+      .preset-row {
+        grid-template-columns: 1fr
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation: none !important;
+        transition: none !important
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="app">
     <header class="top">
@@ -141,8 +813,10 @@
 
         <div class="section">
           <div class="label">Search strength</div>
-          <div class="field"><label for="timeMs">AI time (ms)</label><input id="timeMs" type="number" min="100" max="120000" value="2500"></div>
-          <div class="field"><label for="maxDepth">Max depth</label><input id="maxDepth" type="number" min="1" max="18" value="10"></div>
+          <div class="field"><label for="timeMs">AI time (ms)</label><input id="timeMs" type="number" min="100"
+              max="120000" value="2500"></div>
+          <div class="field"><label for="maxDepth">Max depth</label><input id="maxDepth" type="number" min="1" max="18"
+              value="10"></div>
           <div class="preset-row">
             <button class="preset" data-time="900" data-depth="7" type="button">FAST</button>
             <button class="preset" data-time="1700" data-depth="9" type="button">STRONG</button>
@@ -179,168 +853,171 @@
     const API = (location.protocol === 'http:' || location.protocol === 'https:') && /^(127\.0\.0\.1|localhost)$/i.test(location.hostname)
       ? `${location.origin}/api/chessmind`
       : REMOTE_API;
-    const GLYPH = {P:'♙',N:'♘',B:'♗',R:'♖',Q:'♕',K:'♔',p:'♟',n:'♞',b:'♝',r:'♜',q:'♛',k:'♚'};
-    const files='abcdefgh';
-    let state=null, selected=null, stack=[], busy=false, human='white', aiVsAi=false, aiVsAiToken=0, gameSeed=0;
-    const $=id=>document.getElementById(id);
-    function newGameSeed(){const a=new Uint32Array(2);if(window.crypto?.getRandomValues){window.crypto.getRandomValues(a);return (BigInt(a[0])<<32n)|BigInt(a[1]);}return BigInt(Math.floor(Math.random()*2**32))*4294967296n+BigInt(Math.floor(Math.random()*2**32));}
-    function seedForApi(){return gameSeed.toString();}
+    // Use the solid/filled Unicode set for both sides. White pieces are
+    // filled white with a dark edge; black pieces stay solid black.
+    const GLYPH = { P: '♟', N: '♞', B: '♝', R: '♜', Q: '♛', K: '♚', p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
+    const files = 'abcdefgh';
+    let state = null, selected = null, stack = [], busy = false, human = 'white', aiVsAi = false, aiVsAiToken = 0, gameSeed = 0;
+    const $ = id => document.getElementById(id);
+    function newGameSeed() { const a = new Uint32Array(2); if (window.crypto?.getRandomValues) { window.crypto.getRandomValues(a); return (BigInt(a[0]) << 32n) | BigInt(a[1]); } return BigInt(Math.floor(Math.random() * 2 ** 32)) * 4294967296n + BigInt(Math.floor(Math.random() * 2 ** 32)); }
+    function seedForApi() { return gameSeed.toString(); }
 
-    function parseFen(f){
-      const rows=f.split(' ')[0].split('/'); const m={};
-      rows.forEach((row,r)=>{let c=0;for(const ch of row){if(/\d/.test(ch))c+=Number(ch);else{m[files[c]+(8-r)]=ch;c++;}}});
+    function parseFen(f) {
+      const rows = f.split(' ')[0].split('/'); const m = {};
+      rows.forEach((row, r) => { let c = 0; for (const ch of row) { if (/\d/.test(ch)) c += Number(ch); else { m[files[c] + (8 - r)] = ch; c++; } } });
       return m;
     }
-    async function api(path, body){
-      const res=await fetch(API+path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});
-      const text=await res.text(); let data={}; try{data=JSON.parse(text)}catch{data={error:text||'Empty server response'}}
-      if(!res.ok||data.error)throw new Error(data.error||'Request failed'); return data;
+    async function api(path, body) {
+      const res = await fetch(API + path, { method: body ? 'POST' : 'GET', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+      const text = await res.text(); let data = {}; try { data = JSON.parse(text) } catch { data = { error: text || 'Empty server response' } }
+      if (!res.ok || data.error) throw new Error(data.error || 'Request failed'); return data;
     }
-    function sideFromPiece(piece){return /[A-Z]/.test(piece)?'white':'black'}
-    function ownPiece(piece,side){return piece&&sideFromPiece(piece)===side}
+    function sideFromPiece(piece) { return /[A-Z]/.test(piece) ? 'white' : 'black' }
+    function ownPiece(piece, side) { return piece && sideFromPiece(piece) === side }
 
-    function render(){
-      if(!state)return;
-      const m=parseFen(state.fen), b=$('board'), legal=state.legal_moves||[];
-      const selectedMoves=selected?legal.filter(x=>x.slice(0,2)===selected):[];
-      const kingPiece=state.turn==='white'?'K':'k'; const kingSq=Object.keys(m).find(sq=>m[sq]===kingPiece);
-      b.innerHTML='';
-      for(let r=8;r>=1;r--){
-        for(let c=0;c<8;c++){
-          const sq=files[c]+r, btn=document.createElement('button');
-          btn.type='button';btn.className='sq '+(((c+r)%2)?'dark':'light');btn.dataset.sq=sq;btn.setAttribute('role','gridcell');btn.setAttribute('aria-label',sq);
-          if(selected===sq)btn.classList.add('selected');
-          if(state.check&&sq===kingSq)btn.classList.add('check-king');
-          if(selectedMoves.some(x=>x.slice(2,4)===sq))btn.classList.add(m[sq]?'capture':'target');
-          if(state.last_move){if(state.last_move.slice(0,2)===sq)btn.classList.add('last-from');if(state.last_move.slice(2,4)===sq)btn.classList.add('last-to');}
-          if(c===0){const rank=document.createElement('span');rank.className='coord rank';rank.textContent=r;btn.appendChild(rank)}
-          if(r===1){const file=document.createElement('span');file.className='coord file';file.textContent=files[c];btn.appendChild(file)}
-          const p=m[sq];
-          if(p){const span=document.createElement('span');span.className='piece '+sideFromPiece(p);span.textContent=GLYPH[p]||p;btn.appendChild(span)}
-          if(state.last_move&&(state.last_move.slice(0,2)===sq||state.last_move.slice(2,4)===sq)){
-            const marker=document.createElement('span');marker.className='move-marker';marker.textContent=state.last_move.slice(2,4)===sq?'TO':'FROM';btn.appendChild(marker)
+    function render() {
+      if (!state) return;
+      const m = parseFen(state.fen), b = $('board'), legal = state.legal_moves || [];
+      const selectedMoves = selected ? legal.filter(x => x.slice(0, 2) === selected) : [];
+      const kingPiece = state.turn === 'white' ? 'K' : 'k'; const kingSq = Object.keys(m).find(sq => m[sq] === kingPiece);
+      b.innerHTML = '';
+      for (let r = 8; r >= 1; r--) {
+        for (let c = 0; c < 8; c++) {
+          const sq = files[c] + r, btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'sq ' + (((c + r) % 2) ? 'dark' : 'light'); btn.dataset.sq = sq; btn.setAttribute('role', 'gridcell'); btn.setAttribute('aria-label', sq);
+          if (selected === sq) btn.classList.add('selected');
+          if (state.check && sq === kingSq) btn.classList.add('check-king');
+          if (selectedMoves.some(x => x.slice(2, 4) === sq)) btn.classList.add(m[sq] ? 'capture' : 'target');
+          if (state.last_move) { if (state.last_move.slice(0, 2) === sq) btn.classList.add('last-from'); if (state.last_move.slice(2, 4) === sq) btn.classList.add('last-to'); }
+          if (c === 0) { const rank = document.createElement('span'); rank.className = 'coord rank'; rank.textContent = r; btn.appendChild(rank) }
+          if (r === 1) { const file = document.createElement('span'); file.className = 'coord file'; file.textContent = files[c]; btn.appendChild(file) }
+          const p = m[sq];
+          if (p) { const span = document.createElement('span'); span.className = 'piece ' + sideFromPiece(p); span.textContent = GLYPH[p] || p; btn.appendChild(span) }
+          if (state.last_move && (state.last_move.slice(0, 2) === sq || state.last_move.slice(2, 4) === sq)) {
+            const marker = document.createElement('span'); marker.className = 'move-marker'; marker.textContent = state.last_move.slice(2, 4) === sq ? 'TO' : 'FROM'; btn.appendChild(marker)
           }
-          btn.addEventListener('click',()=>clickSq(sq)); b.appendChild(btn);
+          btn.addEventListener('click', () => clickSq(sq)); b.appendChild(btn);
         }
       }
-      let turnText=state.terminal?'Game over':(state.turn==='white'?'White to move':'Black to move');
-      if(state.check&&!state.terminal)turnText+=' · CHECK';
-      $('turn').textContent=turnText;
-      $('eval').textContent=state.analysis?.is_mate?'MATE':state.analysis?.evaluation!=null?((state.analysis.evaluation>=0?'+':'')+Number(state.analysis.evaluation).toFixed(2)):'—';
-      $('depth').textContent=state.analysis?.depth??'—';$('time').textContent=state.analysis?state.analysis.elapsed_ms+' ms':'—';
-      $('nodes').textContent=state.analysis?Number(state.analysis.nodes||0).toLocaleString():'—';$('nps').textContent=state.analysis?Number(state.analysis.nps||0).toLocaleString():'—';
-      $('best').textContent=state.analysis?.best_move_san||'—';$('tt').textContent=state.analysis?Number(state.analysis.tt_hits||0).toLocaleString():'—';
-      $('pv').textContent=state.analysis?.principal_variation?.join(' ')||'No analysis yet.';
-      const lastSan=state.history?.length?state.history[state.history.length-1]:null; const lastUci=state.last_move?` · ${state.last_move.slice(0,2)} → ${state.last_move.slice(2,4)}`:'';
-      $('lastMove').textContent='LAST MOVE · '+(lastSan||'—')+lastUci;
-      renderHistory(state.history||[]);
-      const alert=$('stateAlert');
-      if(state.check&&!state.terminal){alert.classList.add('open');alert.innerHTML='<strong>⚠ CHECK</strong> — Your king is under attack. Only legal check-evasions are available.'}
-      else{alert.classList.remove('open');alert.textContent=''}
-      $('selectionInfo').textContent=selected?`SELECTED · ${selected.toUpperCase()} · LEGAL DESTINATIONS: ${selectedMoves.length}`:'';
-      $('undo').disabled=busy||!stack.length;$('analyze').disabled=busy||state.terminal;$('new').disabled=busy;
-      $('aivai').disabled=busy&&!aiVsAi;
-      $('aivai').textContent=aiVsAi?'Stop AI vs AI':'AI vs AI';
-      $('modeChip').textContent=aiVsAi?'AI · VS · AI':(human==='white'?'YOU · WHITE':'YOU · BLACK');
-      $('status').classList.toggle('busy',busy);$('thinkbar').classList.toggle('open',busy);$('thinkbar').setAttribute('aria-hidden',busy?'false':'true');
+      let turnText = state.terminal ? 'Game over' : (state.turn === 'white' ? 'White to move' : 'Black to move');
+      if (state.check && !state.terminal) turnText += ' · CHECK';
+      $('turn').textContent = turnText;
+      $('eval').textContent = state.analysis?.is_mate ? 'MATE' : state.analysis?.evaluation != null ? ((state.analysis.evaluation >= 0 ? '+' : '') + Number(state.analysis.evaluation).toFixed(2)) : '—';
+      $('depth').textContent = state.analysis?.depth ?? '—'; $('time').textContent = state.analysis ? state.analysis.elapsed_ms + ' ms' : '—';
+      $('nodes').textContent = state.analysis ? Number(state.analysis.nodes || 0).toLocaleString() : '—'; $('nps').textContent = state.analysis ? Number(state.analysis.nps || 0).toLocaleString() : '—';
+      $('best').textContent = state.analysis?.best_move_san || '—'; $('tt').textContent = state.analysis ? Number(state.analysis.tt_hits || 0).toLocaleString() : '—';
+      $('pv').textContent = state.analysis?.principal_variation?.join(' ') || 'No analysis yet.';
+      const lastSan = state.history?.length ? state.history[state.history.length - 1] : null; const lastUci = state.last_move ? ` · ${state.last_move.slice(0, 2)} → ${state.last_move.slice(2, 4)}` : '';
+      $('lastMove').textContent = 'LAST MOVE · ' + (lastSan || '—') + lastUci;
+      renderHistory(state.history || []);
+      const alert = $('stateAlert');
+      if (state.check && !state.terminal) { alert.classList.add('open'); alert.innerHTML = '<strong>⚠ CHECK</strong> — Your king is under attack. Only legal check-evasions are available.' }
+      else { alert.classList.remove('open'); alert.textContent = '' }
+      $('selectionInfo').textContent = selected ? `SELECTED · ${selected.toUpperCase()} · LEGAL DESTINATIONS: ${selectedMoves.length}` : '';
+      $('undo').disabled = busy || !stack.length; $('analyze').disabled = busy || state.terminal; $('new').disabled = busy;
+      $('aivai').disabled = busy && !aiVsAi;
+      $('aivai').textContent = aiVsAi ? 'Stop AI vs AI' : 'AI vs AI';
+      $('modeChip').textContent = aiVsAi ? 'AI · VS · AI' : (human === 'white' ? 'YOU · WHITE' : 'YOU · BLACK');
+      $('status').classList.toggle('busy', busy); $('thinkbar').classList.toggle('open', busy); $('thinkbar').setAttribute('aria-hidden', busy ? 'false' : 'true');
     }
-    function renderHistory(history){
-      const el=$('history'); if(!history.length){el.innerHTML='<div class="no-moves">No moves yet.</div>';return}
-      const rows=[];for(let i=0;i<history.length;i+=2){const n=Math.floor(i/2)+1,w=history[i]||'',bl=history[i+1]||'',latest=i>=history.length-2;rows.push(`<div class="move-row ${latest?'latest':''}"><span>${n}.</span><span>${escapeHtml(w)}</span><span>${escapeHtml(bl)}</span></div>`)}
-      el.innerHTML=rows.join('');el.scrollTop=el.scrollHeight;
+    function renderHistory(history) {
+      const el = $('history'); if (!history.length) { el.innerHTML = '<div class="no-moves">No moves yet.</div>'; return }
+      const rows = []; for (let i = 0; i < history.length; i += 2) { const n = Math.floor(i / 2) + 1, w = history[i] || '', bl = history[i + 1] || '', latest = i >= history.length - 2; rows.push(`<div class="move-row ${latest ? 'latest' : ''}"><span>${n}.</span><span>${escapeHtml(w)}</span><span>${escapeHtml(bl)}</span></div>`) }
+      el.innerHTML = rows.join(''); el.scrollTop = el.scrollHeight;
     }
-    function escapeHtml(v){return String(v).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-    function snapshot(){return {fen:state.fen,history_uci:[...(state.history_uci||[])]}}
-    async function load(fen='start',history_uci=[]){state=await api('/state',{fen,history_uci});selected=null;render()}
-    function closeResult(){$('resultOverlay').classList.remove('open');$('resultOverlay').setAttribute('aria-hidden','true')}
-    function showResult(){
-      if(!state?.terminal)return;
-      const card=$('resultCard'),title=$('resultTitle'),text=$('resultText'); card.className='result-card';
-      let result='DRAW',explanation=state.terminal_message||'Game complete.';
-      if(state.terminal_kind==='checkmate'){
-        const winner=state.turn==='white'?'black':'white';
-        if(aiVsAi){result=winner.toUpperCase()+' WINS';card.classList.add('win')}
-        else if(winner===human){result='YOU WIN';card.classList.add('win')}
-        else{result='YOU LOSE';card.classList.add('lose')}
-        explanation='Checkmate — '+(winner==='white'?'White wins.':'Black wins.');
-      }else if(state.terminal_kind==='threefold_repetition'){result='DRAW';explanation='Threefold repetition — the same position occurred three times.'}
-      title.textContent=result;text.textContent=explanation;$('resultOverlay').classList.add('open');$('resultOverlay').setAttribute('aria-hidden','false');
+    function escapeHtml(v) { return String(v).replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])) }
+    function snapshot() { return { fen: state.fen, history_uci: [...(state.history_uci || [])] } }
+    async function load(fen = 'start', history_uci = []) { state = await api('/state', { fen, history_uci }); selected = null; render() }
+    function closeResult() { $('resultOverlay').classList.remove('open'); $('resultOverlay').setAttribute('aria-hidden', 'true') }
+    function showResult() {
+      if (!state?.terminal) return;
+      const card = $('resultCard'), title = $('resultTitle'), text = $('resultText'); card.className = 'result-card';
+      let result = 'DRAW', explanation = state.terminal_message || 'Game complete.';
+      if (state.terminal_kind === 'checkmate') {
+        const winner = state.turn === 'white' ? 'black' : 'white';
+        if (aiVsAi) { result = winner.toUpperCase() + ' WINS'; card.classList.add('win') }
+        else if (winner === human) { result = 'YOU WIN'; card.classList.add('win') }
+        else { result = 'YOU LOSE'; card.classList.add('lose') }
+        explanation = 'Checkmate — ' + (winner === 'white' ? 'White wins.' : 'Black wins.');
+      } else if (state.terminal_kind === 'threefold_repetition') { result = 'DRAW'; explanation = 'Threefold repetition — the same position occurred three times.' }
+      title.textContent = result; text.textContent = explanation; $('resultOverlay').classList.add('open'); $('resultOverlay').setAttribute('aria-hidden', 'false');
     }
 
-    async function newGame(){
-      aiVsAi=false;aiVsAiToken++;if(busy)return;closeResult();stack=[];gameSeed=newGameSeed();state=null;render();
-      await load('start',[]);$('message').textContent='Your move — select a white piece.';
+    async function newGame() {
+      aiVsAi = false; aiVsAiToken++; if (busy) return; closeResult(); stack = []; gameSeed = newGameSeed(); state = null; render();
+      await load('start', []); $('message').textContent = 'Your move — select a white piece.';
     }
-    async function play(uci,auto=false){
-      const before=snapshot();stack.push(before);busy=true;render();
-      try{
-        state=await api('/play',{fen:state.fen,uci,history_uci:state.history_uci||[]});selected=null;render();
-        if(state.terminal){$('message').textContent=state.terminal_message||'Game over.';showResult();return}
-        if(!auto&&state.turn!==human)await aiTurn();
-        else if(!auto)$('message').textContent='Your move.';
-      }catch(e){stack.pop();$('message').textContent=e.message}
-      finally{busy=false;render()}
+    async function play(uci, auto = false) {
+      const before = snapshot(); stack.push(before); busy = true; render();
+      try {
+        state = await api('/play', { fen: state.fen, uci, history_uci: state.history_uci || [] }); selected = null; render();
+        if (state.terminal) { $('message').textContent = state.terminal_message || 'Game over.'; showResult(); return }
+        if (!auto && state.turn !== human) await aiTurn();
+        else if (!auto) $('message').textContent = 'Your move.';
+      } catch (e) { stack.pop(); $('message').textContent = e.message }
+      finally { busy = false; render() }
     }
-    async function aiTurn(){
-      if(!state||state.terminal)return;
-      busy=true;$('message').textContent='ChessMind is calculating…';render();
-      try{
-        const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||2500,depth:Number($('maxDepth').value)||10,seed:seedForApi(),diversify:true});
-        state.analysis=a;render();
-        if(!a.best_move_uci){$('message').textContent=a.terminal_kind||'No legal move.';if(a.terminal)showResult();return}
-        const before=snapshot();stack.push(before);
-        state=await api('/play',{fen:state.fen,uci:a.best_move_uci,history_uci:state.history_uci||[]});state.analysis=a;selected=null;render();
-        $('message').textContent=state.terminal?(state.terminal_message||'Game over.'): 'Your move.';if(state.terminal)showResult();
-      }catch(e){$('message').textContent='AI error: '+e.message}
-      finally{busy=false;render()}
+    async function aiTurn() {
+      if (!state || state.terminal) return;
+      busy = true; $('message').textContent = 'ChessMind is calculating…'; render();
+      try {
+        const a = await api('/analyze', { fen: state.fen, history_uci: state.history_uci || [], time_ms: Number($('timeMs').value) || 2500, depth: Number($('maxDepth').value) || 10, seed: seedForApi(), diversify: true });
+        state.analysis = a; render();
+        if (!a.best_move_uci) { $('message').textContent = a.terminal_kind || 'No legal move.'; if (a.terminal) showResult(); return }
+        const before = snapshot(); stack.push(before);
+        state = await api('/play', { fen: state.fen, uci: a.best_move_uci, history_uci: state.history_uci || [] }); state.analysis = a; selected = null; render();
+        $('message').textContent = state.terminal ? (state.terminal_message || 'Game over.') : 'Your move.'; if (state.terminal) showResult();
+      } catch (e) { $('message').textContent = 'AI error: ' + e.message }
+      finally { busy = false; render() }
     }
-    async function clickSq(sq){
-      if(busy||!state||state.terminal||aiVsAi||state.turn!==human)return;
-      const m=parseFen(state.fen),p=m[sq];
-      if(selected){
-        const candidates=(state.legal_moves||[]).filter(x=>x.slice(0,2)===selected&&x.slice(2,4)===sq);
-        const move=candidates[0];
-        if(move){await play(move);return}
-        if(ownPiece(p,human)){selected=sq;render();return}
-        $('message').textContent=state.check?'That move does not get your king out of check.':'That is not a legal destination.';return;
+    async function clickSq(sq) {
+      if (busy || !state || state.terminal || aiVsAi || state.turn !== human) return;
+      const m = parseFen(state.fen), p = m[sq];
+      if (selected) {
+        const candidates = (state.legal_moves || []).filter(x => x.slice(0, 2) === selected && x.slice(2, 4) === sq);
+        const move = candidates[0];
+        if (move) { await play(move); return }
+        if (ownPiece(p, human)) { selected = sq; render(); return }
+        $('message').textContent = state.check ? 'That move does not get your king out of check.' : 'That is not a legal destination.'; return;
       }
-      if(ownPiece(p,human)){selected=sq;const count=(state.legal_moves||[]).filter(x=>x.slice(0,2)===selected).length;$('message').textContent=count?'Choose destination.':'This piece has no legal move.';render()}
-      else{$('message').textContent='Select one of your pieces.';render()}
+      if (ownPiece(p, human)) { selected = sq; const count = (state.legal_moves || []).filter(x => x.slice(0, 2) === selected).length; $('message').textContent = count ? 'Choose destination.' : 'This piece has no legal move.'; render() }
+      else { $('message').textContent = 'Select one of your pieces.'; render() }
     }
-    async function undo(){if(busy||!stack.length||aiVsAi)return;const snap=stack.pop();await load(snap.fen,snap.history_uci);$('message').textContent='Move undone.'}
-    async function analyze(){if(busy||!state||state.terminal)return;busy=true;$('message').textContent='Running analysis…';render();try{const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||2500,depth:Number($('maxDepth').value)||10,seed:seedForApi(),diversify:true});state.analysis=a;render();$('message').textContent=a.fallback?'Analysis used the legal-move safety fallback.':'Analysis complete.'}catch(e){$('message').textContent=e.message}finally{busy=false;render()}}
+    async function undo() { if (busy || !stack.length || aiVsAi) return; const snap = stack.pop(); await load(snap.fen, snap.history_uci); $('message').textContent = 'Move undone.' }
+    async function analyze() { if (busy || !state || state.terminal) return; busy = true; $('message').textContent = 'Running analysis…'; render(); try { const a = await api('/analyze', { fen: state.fen, history_uci: state.history_uci || [], time_ms: Number($('timeMs').value) || 2500, depth: Number($('maxDepth').value) || 10, seed: seedForApi(), diversify: true }); state.analysis = a; render(); $('message').textContent = a.fallback ? 'Analysis used the legal-move safety fallback.' : 'Analysis complete.' } catch (e) { $('message').textContent = e.message } finally { busy = false; render() } }
 
-    async function aiVsAiLoop(){
-      const token=++aiVsAiToken;aiVsAi=true;closeResult();stack=[];gameSeed=newGameSeed();await load('start',[]);$('message').textContent='AI vs AI showcase running…';render();
-      let plies=0;
-      while(aiVsAi&&token===aiVsAiToken&&state&&!state.terminal&&plies<300){
-        busy=true;$('message').textContent=`AI ${state.turn.toUpperCase()} is calculating…`;render();
-        try{
-          const a=await api('/analyze',{fen:state.fen,history_uci:state.history_uci||[],time_ms:Number($('timeMs').value)||900,depth:Number($('maxDepth').value)||7,seed:seedForApi(),diversify:true});
-          if(!aiVsAi||token!==aiVsAiToken)break;
-          state.analysis=a;render();
-          if(!a.best_move_uci){if(a.terminal)showResult();break}
+    async function aiVsAiLoop() {
+      const token = ++aiVsAiToken; aiVsAi = true; closeResult(); stack = []; gameSeed = newGameSeed(); await load('start', []); $('message').textContent = 'AI vs AI showcase running…'; render();
+      let plies = 0;
+      while (aiVsAi && token === aiVsAiToken && state && !state.terminal && plies < 300) {
+        busy = true; $('message').textContent = `AI ${state.turn.toUpperCase()} is calculating…`; render();
+        try {
+          const a = await api('/analyze', { fen: state.fen, history_uci: state.history_uci || [], time_ms: Number($('timeMs').value) || 900, depth: Number($('maxDepth').value) || 7, seed: seedForApi(), diversify: true });
+          if (!aiVsAi || token !== aiVsAiToken) break;
+          state.analysis = a; render();
+          if (!a.best_move_uci) { if (a.terminal) showResult(); break }
           stack.push(snapshot());
-          state=await api('/play',{fen:state.fen,uci:a.best_move_uci,history_uci:state.history_uci||[]});state.analysis=a;selected=null;plies++;
-          busy=false;render();
-          if(state.terminal){$('message').textContent=state.terminal_message||'Game over.';showResult();break}
-          await new Promise(r=>setTimeout(r,120));
-        }catch(e){$('message').textContent='AI vs AI error: '+e.message;break}finally{busy=false;render()}
+          state = await api('/play', { fen: state.fen, uci: a.best_move_uci, history_uci: state.history_uci || [] }); state.analysis = a; selected = null; plies++;
+          busy = false; render();
+          if (state.terminal) { $('message').textContent = state.terminal_message || 'Game over.'; showResult(); break }
+          await new Promise(r => setTimeout(r, 120));
+        } catch (e) { $('message').textContent = 'AI vs AI error: ' + e.message; break } finally { busy = false; render() }
       }
-      busy=false;aiVsAi=false;render();
+      busy = false; aiVsAi = false; render();
     }
-    async function toggleAiVsAi(){
-      if(aiVsAi){aiVsAi=false;aiVsAiToken++;busy=false;render();$('message').textContent='AI vs AI stopped.';return}
+    async function toggleAiVsAi() {
+      if (aiVsAi) { aiVsAi = false; aiVsAiToken++; busy = false; render(); $('message').textContent = 'AI vs AI stopped.'; return }
       await aiVsAiLoop();
     }
 
-    document.querySelectorAll('.preset').forEach(btn=>btn.addEventListener('click',()=>{$('timeMs').value=btn.dataset.time;$('maxDepth').value=btn.dataset.depth;$('message').textContent=`Search preset: ${btn.textContent}.`}));
-    $('new').onclick=newGame;$('undo').onclick=undo;$('analyze').onclick=analyze;$('aivai').onclick=toggleAiVsAi;$('resultNew').onclick=newGame;
-    $('resultOverlay').addEventListener('click',e=>{if(e.target.id==='resultOverlay')closeResult()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeResult()});
+    document.querySelectorAll('.preset').forEach(btn => btn.addEventListener('click', () => { $('timeMs').value = btn.dataset.time; $('maxDepth').value = btn.dataset.depth; $('message').textContent = `Search preset: ${btn.textContent}.` }));
+    $('new').onclick = newGame; $('undo').onclick = undo; $('analyze').onclick = analyze; $('aivai').onclick = toggleAiVsAi; $('resultNew').onclick = newGame;
+    $('resultOverlay').addEventListener('click', e => { if (e.target.id === 'resultOverlay') closeResult() }); document.addEventListener('keydown', e => { if (e.key === 'Escape') closeResult() });
 
-    gameSeed=newGameSeed();
-    $('statusText').textContent='CONNECTING';
-    api('/health').then(()=>{$('statusText').textContent='ENGINE READY';$('status').classList.add('ok');return newGame()}).catch(e=>{$('statusText').textContent='SERVER OFFLINE';$('message').textContent=e.message;});
+    gameSeed = newGameSeed();
+    $('statusText').textContent = 'CONNECTING';
+    api('/health').then(() => { $('statusText').textContent = 'ENGINE READY'; $('status').classList.add('ok'); return newGame() }).catch(e => { $('statusText').textContent = 'SERVER OFFLINE'; $('message').textContent = e.message; });
   </script>
 </body>
+
 </html>
