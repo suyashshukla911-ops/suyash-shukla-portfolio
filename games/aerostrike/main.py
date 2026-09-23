@@ -147,6 +147,11 @@ FONT_CACHE = {}
 TEXT_SURFACE_CACHE = {}
 STAR_CACHE = None
 
+# UI-only readability tuning. Gameplay/physics coordinates, timing,
+# collisions, controls, animations and visual assets are intentionally
+# unchanged; this multiplier only enlarges the existing rendered text.
+UI_TEXT_SCALE = 1.35
+
 
 # ============================================================
 # pygame bootstrap
@@ -1797,12 +1802,18 @@ class Game:
         )
 
         text_value = str(text)
+
+        # Keep the original text calls and layout logic intact, but render
+        # every existing label larger so the game remains readable when the
+        # 720x1040 logical surface is scaled down inside the website.
+        render_size = max(1, int(round(float(size) * UI_TEXT_SCALE)))
+
         # Text content/size/color is highly repetitive. Cache the rendered
         # glyph surfaces so pygame does not rasterize the same text every frame.
-        cache_key = (text_value, int(size), tuple(color_value), bool(bold))
+        cache_key = (text_value, render_size, tuple(color_value), bool(bold))
         rendered = TEXT_SURFACE_CACHE.get(cache_key)
         if rendered is None:
-            rendered = get_font(size, bold).render(
+            rendered = get_font(render_size, bold).render(
                 text_value,
                 True,
                 color_value,

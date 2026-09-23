@@ -67,3 +67,5 @@ For GitHub Pages, commit the generated `build/web` folder together with this gam
 
 
 Final refinements: pause menu supports TAB / Shift+TAB navigation with Enter/Space activation, and web audio is slightly increased (music 0.88, SFX 0.82). Gameplay/physics logic is unchanged.
+
+UI readability refinement: all existing game text is rendered at 1.35x its previous font size. Text content, positions, colors, table geometry, physics, scoring, controls, audio logic and animations are unchanged.
