@@ -532,6 +532,26 @@
             backdrop-filter: blur(7px);
         }
 
+
+        /* Slightly larger association presentation while retaining the existing grid system. */
+        #associations .association-card-media {
+            min-height: 195px;
+        }
+
+        #associations .association-card-body {
+            padding: 24px 24px 22px;
+        }
+
+        @media (max-width: 760px) {
+            #associations .association-card-media {
+                min-height: 190px;
+            }
+
+            #associations .association-card-body {
+                padding: 22px 20px 20px;
+            }
+        }
+
         .association-card-body {
             flex: 1;
             display: flex;
@@ -2187,11 +2207,34 @@ MOBILE
         }
 
         .flow-node {
+            appearance: none;
+            width: 100%;
             display: flex;
             align-items: center;
             gap: var(--sp-lg);
             padding: var(--sp-lg) 0;
+            border: 0;
             border-bottom: 1px solid var(--border);
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: color .22s ease, transform .22s ease;
+        }
+
+        .flow-node:hover,
+        .flow-node:focus-visible {
+            color: var(--cyan);
+            transform: translateX(4px);
+            outline: none;
+        }
+
+        .flow-node:hover .flow-dot,
+        .flow-node:focus-visible .flow-dot {
+            border-color: var(--cyan);
+            background: rgba(47, 127, 120, .06);
+            box-shadow: 0 0 0 4px rgba(47, 127, 120, .07);
         }
 
         .flow-node:last-child {
@@ -5472,6 +5515,32 @@ MOBILE
             color: var(--cyan);
         }
 
+
+        /* High-contrast cursor in dark mode: visible against dark surfaces and overlays. */
+        html:not([data-theme="light"]) .custom-cursor {
+            border-color: #5DE7FF;
+            background: rgba(93, 231, 255, .035);
+            mix-blend-mode: normal;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, .10),
+                0 0 18px rgba(93, 231, 255, .24);
+        }
+
+        html:not([data-theme="light"]) .custom-cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 2px rgba(93, 231, 255, .55), 0 0 12px rgba(93, 231, 255, .50);
+        }
+
+        html:not([data-theme="light"]) .custom-cursor.is-hover {
+            background: rgba(93, 231, 255, .11);
+            border-color: #FFFFFF;
+            box-shadow:
+                0 0 0 1px rgba(93, 231, 255, .25),
+                0 0 24px rgba(93, 231, 255, .34);
+        }
+
         html:not([data-theme="light"]) .tag {
             color: #AEBACA;
             border-color: #33445A;
@@ -5504,6 +5573,59 @@ MOBILE
         /* Light mode remains clean and readable. */
         html[data-theme="light"] .theme-btn {
             background: var(--surface-800);
+        }
+
+
+        /* =========================================================
+           CONTEXTUAL CURSOR MODE
+           Keep the original custom cursor on the portfolio canvas.
+           When an internal modal/detail/lightbox opens, switch only
+           that active view to the native browser cursor, matching
+           the proven ChessMind interaction model.
+           ========================================================= */
+        body.native-modal-cursor {
+            cursor: default !important;
+        }
+
+        body.native-modal-cursor .custom-cursor,
+        body.native-modal-cursor .custom-cursor-dot {
+            display: none !important;
+        }
+
+        body.native-modal-cursor a,
+        body.native-modal-cursor button,
+        body.native-modal-cursor [role="button"],
+        body.native-modal-cursor select {
+            cursor: pointer !important;
+        }
+
+        body.native-modal-cursor input,
+        body.native-modal-cursor textarea {
+            cursor: text !important;
+        }
+
+        body.native-modal-cursor input[type="checkbox"],
+        body.native-modal-cursor input[type="radio"],
+        body.native-modal-cursor input[type="range"] {
+            cursor: pointer !important;
+        }
+
+        /* This is intentionally the same native-cursor contract used by
+           ChessMind, generalized to every portfolio modal/detail view. */
+        body.chessmind-open {
+            cursor: default !important;
+        }
+
+        body.chessmind-open .custom-cursor,
+        body.chessmind-open .custom-cursor-dot {
+            display: none !important;
+        }
+
+        body.chessmind-open a,
+        body.chessmind-open button,
+        body.chessmind-open input,
+        body.chessmind-open select {
+            cursor: pointer !important;
         }
     </style>
 </head>
@@ -5728,43 +5850,50 @@ MOBILE
                         taught me to turn ideas into outcomes while working with real deadlines, constraints and teams.
                     </p>
                 </div>
-                <div class="flow">
-                    <div class="flow-node">
+                <div class="flow" aria-label="Interactive engineering domains">
+                    <button class="flow-node" type="button" data-flow-target="electronics"
+                        aria-label="Open JET Club Electronics Community">
                         <div class="flow-dot">01</div>
                         <div>
-                            <h4>Electronics &amp; Computer Science</h4><span>Foundational discipline</span>
+                            <h4>Electronics &amp; Computer Science</h4><span>Foundational discipline · Open
+                                association</span>
                         </div>
-                    </div>
-                    <div class="flow-node">
+                    </button>
+                    <button class="flow-node" type="button" data-flow-target="industrial"
+                        aria-label="Open Electrical Design and Commissioning Internship">
                         <div class="flow-dot">02</div>
                         <div>
-                            <h4>Industrial Automation</h4><span>PLCs, drives, sensors</span>
+                            <h4>Industrial Automation</h4><span>PLCs, drives, sensors · Open experience</span>
                         </div>
-                    </div>
-                    <div class="flow-node">
+                    </button>
+                    <button class="flow-node" type="button" data-flow-target="iot"
+                        aria-label="Open SJU Open Day Smart Frame showcase">
                         <div class="flow-dot">03</div>
                         <div>
-                            <h4>IoT / Embedded</h4><span>Microcontrollers &amp; connected devices</span>
+                            <h4>IoT / Embedded</h4><span>Microcontrollers &amp; connected devices · Open showcase</span>
                         </div>
-                    </div>
-                    <div class="flow-node">
+                    </button>
+                    <button class="flow-node" type="button" data-flow-target="software"
+                        aria-label="Open the AeroStrike pinball game">
                         <div class="flow-dot">04</div>
                         <div>
-                            <h4>Software / Data</h4><span>Applications &amp; data pipelines</span>
+                            <h4>Software / Data</h4><span>Applications &amp; data pipelines · Open pinball</span>
                         </div>
-                    </div>
-                    <div class="flow-node">
+                    </button>
+                    <button class="flow-node" type="button" data-flow-target="ai"
+                        aria-label="Open the ChessMind AI section">
                         <div class="flow-dot">05</div>
                         <div>
-                            <h4>AI / ML</h4><span>Models trained on real problems</span>
+                            <h4>AI / ML</h4><span>Models trained on real problems · Open ChessMind</span>
                         </div>
-                    </div>
-                    <div class="flow-node">
+                    </button>
+                    <button class="flow-node" type="button" data-flow-target="cyber"
+                        aria-label="Open cybersecurity work">
                         <div class="flow-dot">06</div>
                         <div>
-                            <h4>Cybersecurity</h4><span>Current specialization</span>
+                            <h4>Cybersecurity</h4><span>Current specialization · Open cybersecurity projects</span>
                         </div>
-                    </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -7028,6 +7157,50 @@ MOBILE
             });
         })();
 
+
+        /* ========================================================
+           CONTEXTUAL MOUSE CONTROLLER
+
+           IMPORTANT:
+           - The portfolio keeps the existing custom cursor everywhere
+             on the normal page.
+           - Whenever any internal modal/detail/lightbox is open, the
+             custom cursor is disabled and the browser-native cursor is
+             restored, exactly like the ChessMind view.
+           - A MutationObserver keeps this correct for dynamically
+             created/updated modal content and nested lightboxes.
+           ======================================================== */
+        (() => {
+            const modalSelectors = [
+                '#aerostrikeModal',
+                '#chessmindModal',
+                '#associationDetailOverlay',
+                '#credentialLightbox',
+                '#experienceLightbox',
+                '#projectPhotoLightbox',
+                '#modalOverlay'
+            ];
+
+            const modalIsOpen = () => modalSelectors.some(selector => {
+                const el = document.querySelector(selector);
+                return !!el && el.classList.contains('open');
+            });
+
+            const syncModalCursor = () => {
+                const active = modalIsOpen();
+                document.body.classList.toggle('native-modal-cursor', active);
+            };
+
+            const cursorObserver = new MutationObserver(syncModalCursor);
+            cursorObserver.observe(document.body, {
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class']
+            });
+
+            syncModalCursor();
+        })();
+
         /* ========================================================
            NAV
            ======================================================== */
@@ -7365,6 +7538,47 @@ MOBILE
                 document.getElementById('work').scrollIntoView({ behavior: 'smooth' });
             });
         });
+
+
+        /* ========================================================
+           INITIAL PROJECT SHOWCASE SEQUENCE
+           On every page load, preview AI/ML -> Cybersecurity -> Software -> All.
+           The visitor's first manual filter/domain click cancels the sequence.
+           No scroll/reflow is forced, so the sequence also remains safe on mobile.
+           ======================================================== */
+        (function initialProjectShowcaseSequence() {
+            const steps = ['ai', 'cyber', 'software', 'all'];
+            const delay = 1150;
+            let cancelled = false;
+            const timers = [];
+
+            const cancel = () => {
+                if (cancelled) return;
+                cancelled = true;
+                timers.forEach(id => clearTimeout(id));
+            };
+
+            document.querySelectorAll('.filter-chip, .domain-card').forEach(control => {
+                control.addEventListener('click', cancel, { once: true });
+            });
+
+            steps.forEach((filter, index) => {
+                const id = window.setTimeout(() => {
+                    if (cancelled) return;
+
+                    document.querySelectorAll('.filter-chip').forEach(chip => {
+                        chip.classList.toggle('active', chip.dataset.filter === filter);
+                    });
+                    document.querySelectorAll('.domain-card').forEach(card => {
+                        card.classList.toggle('active', card.dataset.domain === filter);
+                    });
+
+                    renderProjects(filter);
+                }, 750 + index * delay);
+
+                timers.push(id);
+            });
+        })();
 
         /* ========================================================
            MODAL
@@ -8253,8 +8467,9 @@ MOBILE
         const ASSOCIATION_ITEMS = [
             {
                 slug: 'ieee-robotics-automation-society',
-                type: 'Leadership',
-                badge: 'Leadership · 2026 — Present',
+                type: 'Association',
+                secondaryTypes: ['Leadership'],
+                badge: 'Association · 2026 — Present',
                 title: 'IEEE Robotics and Automation Society',
                 role: 'Head of Logistics',
                 period: '2026 — Present',
@@ -8333,8 +8548,9 @@ MOBILE
             },
             {
                 slug: 'cyber-hex',
-                type: 'Leadership',
-                badge: 'Leadership · 2026 — Present',
+                type: 'Association',
+                secondaryTypes: ['Leadership'],
+                badge: 'Association · 2026 — Present',
                 title: 'Cyber HEX',
                 role: 'Technical Lead · Cybersecurity Community',
                 period: '2026 — Present',
@@ -8537,6 +8753,23 @@ MOBILE
             },
 
             /* ========================= CAMPUS LIFE ========================= */
+
+            {
+                slug: 'convocation-2026',
+                type: 'Campus Life',
+                badge: 'Campus Life · Convocation 2026',
+                title: 'Convocation 2026',
+                role: 'Graduate · St. Joseph’s University',
+                period: '2026',
+                summary: 'Convocation 2026 marking the completion of the B.Sc. Electronics & Computer Science journey at St. Joseph’s University.',
+                tags: ['Convocation', '2026', 'St. Joseph’s University', 'Campus Life'],
+                gallery: [],
+                sections: [
+                    { title: 'Milestone', body: 'Convocation 2026 at St. Joseph’s University.' },
+                    { title: 'Academic journey', body: 'A campus milestone marking the completion of the B.Sc. Electronics & Computer Science phase of my academic journey.' },
+                    { title: 'Reflection', body: 'A transition point from undergraduate study into the next phase of work and postgraduate learning in Artificial Intelligence and Cyber Security.' }
+                ]
+            },
             {
                 slug: 'msc-ai-cybersecurity-orientation',
                 type: 'Campus Life',
@@ -8598,8 +8831,12 @@ MOBILE
             return map[type] || type;
         }
 
+        function associationMatchesType(item, type) {
+            return item.type === type || (Array.isArray(item.secondaryTypes) && item.secondaryTypes.includes(type));
+        }
+
         function associationHasType(type) {
-            return ASSOCIATION_ITEMS.some(item => item.type === type);
+            return ASSOCIATION_ITEMS.some(item => associationMatchesType(item, type));
         }
 
         function renderAssociationFilters() {
@@ -8718,7 +8955,7 @@ MOBILE
             const pool = ASSOCIATION_ITEMS;
             const filtered = activeAssociationFilter === 'all'
                 ? pool
-                : pool.filter(item => item.type === activeAssociationFilter);
+                : pool.filter(item => associationMatchesType(item, activeAssociationFilter));
 
             // Initial glance: show only the first three cards.
             // Category filters remain available and can reveal their full category
@@ -8954,6 +9191,84 @@ MOBILE
         renderAssociations();
         updateAssociationMoreButton();
         openAssociationFromHash();
+
+        /* ========================================================
+           WHO I AM — INTERACTIVE DOMAIN ROUTING
+           Electronics -> JET Club association
+           Industrial -> Electrical Design & Commissioning experience
+           IoT/Embedded -> SJU Open Day Smart Frame showcase
+           Software/Data -> AeroStrike pinball
+           AI/ML -> ChessMind
+           Cybersecurity -> Cybersecurity projects
+           ======================================================== */
+        (function setupWhoAmRouting() {
+            const flowNodes = document.querySelectorAll('[data-flow-target]');
+            if (!flowNodes.length) return;
+
+            const scrollToExperience = slug => {
+                const entry = document.querySelector(`.tl-item[data-experience-slug="${slug}"]`);
+                if (!entry) return;
+
+                if (!entry.classList.contains('open')) {
+                    entry.classList.add('open');
+                    const toggle = entry.querySelector('.tl-toggle');
+                    if (toggle) toggle.textContent = '−';
+                }
+
+                window.requestAnimationFrame(() => {
+                    entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const target = entry.querySelector('.experience-open-target');
+                    if (target) window.setTimeout(() => target.focus({ preventScroll: true }), 450);
+                });
+            };
+
+            const openAssociationBySlug = slug => {
+                const item = ASSOCIATION_ITEMS.find(entry => entry.slug === slug);
+                if (!item) return;
+
+                associationsExpanded = true;
+                activeAssociationFilter = 'all';
+                renderAssociationFilters();
+                renderAssociations();
+                openAssociationDetail(item, true);
+            };
+
+            const openProjectDomain = domain => {
+                document.querySelectorAll('.filter-chip').forEach(chip => {
+                    chip.classList.toggle('active', chip.dataset.filter === domain);
+                });
+                document.querySelectorAll('.domain-card').forEach(card => {
+                    card.classList.toggle('active', card.dataset.domain === domain);
+                });
+                renderProjects(domain);
+                document.getElementById('work')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+
+            flowNodes.forEach(node => {
+                node.addEventListener('click', () => {
+                    switch (node.dataset.flowTarget) {
+                        case 'electronics':
+                            openAssociationBySlug('jet-club-electronics-community');
+                            break;
+                        case 'industrial':
+                            scrollToExperience('lohia-corp-limited');
+                            break;
+                        case 'iot':
+                            openAssociationBySlug('open-day-26-elixir-smart-frame');
+                            break;
+                        case 'software':
+                            document.querySelector('.system-node-software')?.click();
+                            break;
+                        case 'ai':
+                            document.querySelector('.system-node-ai')?.click();
+                            break;
+                        case 'cyber':
+                            openProjectDomain('cyber');
+                            break;
+                    }
+                });
+            });
+        })();
     </script>
     <script>
         /* ================= CHESSMIND AI CONTROLLER ================= */
