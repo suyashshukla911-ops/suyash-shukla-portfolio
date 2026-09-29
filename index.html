@@ -7541,43 +7541,122 @@ MOBILE
 
 
         /* ========================================================
-           INITIAL PROJECT SHOWCASE SEQUENCE
-           On every page load, preview AI/ML -> Cybersecurity -> Software -> All.
-           The visitor's first manual filter/domain click cancels the sequence.
-           No scroll/reflow is forced, so the sequence also remains safe on mobile.
+           PROJECT SHOWCASE SEQUENCE — ON SCROLL INTO WORK
+           The AI/ML -> Cybersecurity -> Software -> All preview is NOT
+           started on page load and is NOT triggered by clicking Work.
+           It begins once the visitor naturally scrolls into the Work section.
+           Manual filter/domain clicks cancel the automatic preview.
            ======================================================== */
-        (function initialProjectShowcaseSequence() {
+        (function workProjectShowcaseOnScroll() {
+            const workSection = document.getElementById('work');
+            if (!workSection) return;
+
             const steps = ['ai', 'cyber', 'software', 'all'];
             const delay = 1150;
-            let cancelled = false;
-            const timers = [];
 
-            const cancel = () => {
-                if (cancelled) return;
-                cancelled = true;
+            let started = false;
+            let cancelled = false;
+            let suppressFromWorkNavigation = false;
+            let deferredUntilUserScroll = false;
+            let timers = [];
+            let navResetTimer = null;
+
+            const clearTimers = () => {
                 timers.forEach(id => clearTimeout(id));
+                timers = [];
             };
 
+            const cancel = () => {
+                cancelled = true;
+                clearTimers();
+            };
+
+            const workIsVisible = () => {
+                const rect = workSection.getBoundingClientRect();
+                const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+                return rect.top < viewportHeight * 0.92 && rect.bottom > viewportHeight * 0.08;
+            };
+
+            const startShowcase = () => {
+                if (started || cancelled || suppressFromWorkNavigation) return;
+                started = true;
+
+                steps.forEach((filter, index) => {
+                    const id = window.setTimeout(() => {
+                        if (cancelled) return;
+
+                        document.querySelectorAll('.filter-chip').forEach(chip => {
+                            chip.classList.toggle('active', chip.dataset.filter === filter);
+                        });
+
+                        document.querySelectorAll('.domain-card').forEach(card => {
+                            card.classList.toggle('active', card.dataset.domain === filter);
+                        });
+
+                        renderProjects(filter);
+                    }, index * delay);
+
+                    timers.push(id);
+                });
+            };
+
+            // Manual project/domain controls always take priority.
             document.querySelectorAll('.filter-chip, .domain-card').forEach(control => {
-                control.addEventListener('click', cancel, { once: true });
+                control.addEventListener('click', cancel);
             });
 
-            steps.forEach((filter, index) => {
-                const id = window.setTimeout(() => {
-                    if (cancelled) return;
+            // Clicking a Work anchor should only navigate to Work.
+            // It must never initiate the showcase by itself.
+            document.querySelectorAll('a[href="#work"]').forEach(link => {
+                link.addEventListener('click', () => {
+                    cancel();
+                    started = false;
+                    cancelled = false;
+                    clearTimers();
 
-                    document.querySelectorAll('.filter-chip').forEach(chip => {
-                        chip.classList.toggle('active', chip.dataset.filter === filter);
-                    });
-                    document.querySelectorAll('.domain-card').forEach(card => {
-                        card.classList.toggle('active', card.dataset.domain === filter);
-                    });
+                    suppressFromWorkNavigation = true;
+                    deferredUntilUserScroll = true;
 
-                    renderProjects(filter);
-                }, 750 + index * delay);
-
-                timers.push(id);
+                    window.clearTimeout(navResetTimer);
+                    navResetTimer = window.setTimeout(() => {
+                        suppressFromWorkNavigation = false;
+                    }, 1800);
+                });
             });
+
+            // After Work navigation, wait for an actual user scroll gesture.
+            // This makes "click Work" different from "scroll naturally into Work".
+            const startFromUserScroll = () => {
+                if (!deferredUntilUserScroll) return;
+                deferredUntilUserScroll = false;
+                suppressFromWorkNavigation = false;
+                window.clearTimeout(navResetTimer);
+
+                if (workIsVisible()) startShowcase();
+            };
+
+            window.addEventListener('wheel', startFromUserScroll, { passive: true });
+            window.addEventListener('touchstart', startFromUserScroll, { passive: true });
+            window.addEventListener('keydown', event => {
+                if (['ArrowDown', 'PageDown', 'Space', 'End'].includes(event.key)) {
+                    startFromUserScroll();
+                }
+            });
+
+            // Natural scrolling into Work is what starts the preview.
+            const workObserver = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !suppressFromWorkNavigation && !deferredUntilUserScroll) {
+                        startShowcase();
+                        workObserver.unobserve(workSection);
+                    }
+                });
+            }, {
+                threshold: 0.08,
+                rootMargin: '0px 0px -8% 0px'
+            });
+
+            workObserver.observe(workSection);
         })();
 
         /* ========================================================
@@ -8764,14 +8843,14 @@ MOBILE
                 period: '2026',
                 summary: 'Convocation 2026 marking the completion of the B.Sc. Electronics & Computer Science journey at St. Joseph’s University.',
                 tags: ['Convocation', '2026', 'St. Joseph’s University', 'Campus Life'],
-                gallery: ['assets/associations/campus-life/convocation/01.jpeg', 
-                'assets/associations/campus-life/convocation/02.jpeg',
-                'assets/associations/campus-life/convocation/03.jpeg',
-                'assets/associations/campus-life/convocation/04.jpeg',
-                'assets/associations/campus-life/convocation/05.jpeg',
-                'assets/associations/campus-life/convocation/06.jpeg',
-                'assets/associations/campus-life/convocation/07.jpeg',
-                'assets/associations/campus-life/convocation/08.jpeg'],
+                gallery: ['assets/associations/campus-life/convocation/01.jpeg',
+                    'assets/associations/campus-life/convocation/02.jpeg',
+                    'assets/associations/campus-life/convocation/03.jpeg',
+                    'assets/associations/campus-life/convocation/04.jpeg',
+                    'assets/associations/campus-life/convocation/05.jpeg',
+                    'assets/associations/campus-life/convocation/06.jpeg',
+                    'assets/associations/campus-life/convocation/07.jpeg',
+                    'assets/associations/campus-life/convocation/08.jpeg'],
                 sections: [
                     { title: 'Milestone', body: 'Convocation 2026 at St. Joseph’s University.' },
                     { title: 'Academic journey', body: 'A campus milestone marking the completion of the B.Sc. Electronics & Computer Science phase of my academic journey.' },
