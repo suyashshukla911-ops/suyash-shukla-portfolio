@@ -56,7 +56,7 @@
         }
 
         html {
-            scroll-behavior: smooth;
+            scroll-behavior: auto;
         }
 
         @media (prefers-reduced-motion:reduce) {
@@ -164,24 +164,16 @@
             max-width: 56ch;
         }
 
-        .reveal {
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity .35s ease, transform .35s ease;
-        }
-
+        /* Scroll reveal effect removed: sections render immediately.
+           Existing .reveal classes remain untouched so layout/UI stays the same. */
+        .reveal,
         .reveal.in {
             opacity: 1;
-            transform: translateY(0);
+            transform: none;
+            transition: none;
         }
 
-        @media (prefers-reduced-motion:reduce) {
-            .reveal {
-                opacity: 1;
-                transform: none;
-                transition: none;
-            }
-        }
+
 
         .btn {
             display: inline-flex;
@@ -7235,20 +7227,6 @@ MOBILE
         });
 
         /* ========================================================
-           REVEAL ON SCROLL
-           ======================================================== */
-        /* ======================================================== */
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    e.target.classList.add('in');
-                    revealObserver.unobserve(e.target);
-                }
-            });
-        }, { threshold: 0.12 });
-
-        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-        /* ========================================================
            RENDER: DOMAIN COUNTS
            ======================================================== */
         Object.keys(DOMAIN_LABELS).forEach(d => {
@@ -8638,9 +8616,9 @@ MOBILE
                 gallery: [
                     'assets/associations/cyber-hex/01.jpeg',
                     'assets/associations/cyber-hex/02.jpeg',
-                    'assets/associations/cyber-hex/03.JPG',
+                    'assets/associations/cyber-hex/03.jpeg',
                     'assets/associations/cyber-hex/04.jpeg',
-                    'assets/associations/cyber-hex/05.JPG'
+                    'assets/associations/cyber-hex/05.jpeg'
                 ],
                 sections: [
                     { title: 'Association', body: 'Cyber HEX · Cybersecurity Community' },
