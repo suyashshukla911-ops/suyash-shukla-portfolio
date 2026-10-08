@@ -9422,29 +9422,125 @@ MOBILE
            viewer/receiver + sender. The remote application creates
            one temporary session and uses its existing consent gates.
            ======================================================== */
+        /*
+           Phantom-Droid launch contract
+           -----------------------------
+           The CyberQR application itself is left untouched. The portfolio only
+           orchestrates the entry point:
+
+           1. Open the normal CyberQR launcher in TWO tabs so visitors see the
+              same first screen they see when opening the Render URL directly.
+           2. Keep the two tabs on the SAME launch token.
+           3. After a short visual handoff, move tab A into the existing quick
+              host bootstrap and tab B into the existing quick guest bootstrap.
+           4. A repeated click focuses the existing pair instead of creating a
+              second receiver session.
+
+           This does not change QR generation, signaling, WebRTC or consent
+           logic inside Phantom-Droid.
+        */
+        let cyberDemoPair = { host: null, sender: null };
+        let cyberDemoLaunchPending = false;
+
+        function isLiveCyberTab(tab) {
+            try {
+                return Boolean(tab && !tab.closed);
+            } catch {
+                return false;
+            }
+        }
+
+        function focusCyberTab(tab) {
+            if (!isLiveCyberTab(tab)) return;
+            try { tab.focus(); } catch { /* ignore cross-origin focus restrictions */ }
+        }
+
+        function makeCyberLaunchToken() {
+            if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                return window.crypto.randomUUID().replace(/-/g, '');
+            }
+            if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+                return Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
+                    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+            }
+            return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`
+                .replace(/[^A-Za-z0-9_-]/g, '')
+                .slice(0, 48);
+        }
+
         function openCybersecurityDemo() {
             const demoOrigin = 'https://phantom-droid-screen-share.onrender.com';
-            const launchUrl = `${demoOrigin}/cyber/quick.html`;
-            const launchToken = (window.crypto && typeof window.crypto.randomUUID === 'function')
-                ? window.crypto.randomUUID().replace(/-/g, '')
-                : Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
-                    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+            const launcherUrl = `${demoOrigin}/`;
+            const quickUrl = `${demoOrigin}/cyber/quick.html`;
 
-            const hostUrl = `${launchUrl}#role=host&launch=${encodeURIComponent(launchToken)}`;
-            const senderUrl = `${launchUrl}#role=guest&launch=${encodeURIComponent(launchToken)}`;
+            /*
+               Do not create a new pair when the current pair is already open.
+               This is the important fix for the "receiver opens again" problem.
+            */
+            if (isLiveCyberTab(cyberDemoPair.host) || isLiveCyberTab(cyberDemoPair.sender)) {
+                focusCyberTab(cyberDemoPair.host);
+                focusCyberTab(cyberDemoPair.sender);
+                return;
+            }
 
-            const hostTab = window.open(hostUrl, '_blank');
-            const senderTab = window.open(senderUrl, '_blank');
+            if (cyberDemoLaunchPending) return;
+            cyberDemoLaunchPending = true;
 
-            // A browser may block one or both tabs if pop-ups are disabled.
+            const launchToken = makeCyberLaunchToken();
+            const hostUrl = `${quickUrl}#role=host&launch=${encodeURIComponent(launchToken)}`;
+            const senderUrl = `${quickUrl}#role=guest&launch=${encodeURIComponent(launchToken)}`;
+
+            /*
+               First open the real CyberQR home page twice. This restores the
+               familiar "Create viewer session / Join existing session" screen
+               for both tabs instead of jumping straight to host.html.
+            */
+            let hostTab = null;
+            let senderTab = null;
+            try {
+                hostTab = window.open(launcherUrl, '_blank');
+                senderTab = window.open(launcherUrl, '_blank');
+            } catch {
+                hostTab = null;
+                senderTab = null;
+            }
+
             if (!hostTab || !senderTab) {
+                try { if (hostTab && !hostTab.closed) hostTab.close(); } catch {}
+                try { if (senderTab && !senderTab.closed) senderTab.close(); } catch {}
+                cyberDemoLaunchPending = false;
                 window.setTimeout(() => {
                     window.alert(
                         'Phantom-Droid needs two tabs for the live cybersecurity demo. ' +
                         'Please allow pop-ups for this portfolio site and click Cybersecurity again.'
                     );
                 }, 60);
+                return;
             }
+
+            cyberDemoPair = { host: hostTab, sender: senderTab };
+            focusCyberTab(hostTab);
+
+            /*
+               Keep the launcher visible briefly. Then the same two tabs enter
+               the existing secure quick-pair flow using one shared launch token.
+            */
+            window.setTimeout(() => {
+                cyberDemoLaunchPending = false;
+
+                try {
+                    if (isLiveCyberTab(hostTab)) hostTab.location.href = hostUrl;
+                } catch {
+                    // A popup/COOP boundary may block script navigation; the tab
+                    // remains usable and the visitor can continue from the launcher.
+                }
+
+                try {
+                    if (isLiveCyberTab(senderTab)) senderTab.location.href = senderUrl;
+                } catch {
+                    // Same graceful fallback as above.
+                }
+            }, 1400);
         }
 
         const securityDemoNode = document.querySelector('.system-node-security');
