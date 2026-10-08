@@ -2319,6 +2319,17 @@ MOBILE
             color: var(--text-muted);
         }
 
+        .cyber-demo-note {
+            margin-top: auto;
+            padding-top: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            line-height: 1.5;
+            letter-spacing: 0.03em;
+            color: var(--cyan);
+            text-transform: uppercase;
+        }
+
         @media (max-width:900px) {
             .domain-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -5880,10 +5891,10 @@ MOBILE
                         </div>
                     </button>
                     <button class="flow-node" type="button" data-flow-target="cyber"
-                        aria-label="Open cybersecurity work">
+                        aria-label="Open cybersecurity work and launch the live Phantom-Droid demo">
                         <div class="flow-dot">06</div>
                         <div>
-                            <h4>Cybersecurity</h4><span>Current specialization · Open cybersecurity projects</span>
+                            <h4>Cybersecurity</h4><span>Current specialization · Live paired demo · Best on PC</span>
                         </div>
                     </button>
                 </div>
@@ -5907,10 +5918,12 @@ MOBILE
                     <p>Classification, forecasting, NLP and applied ML on real datasets.</p>
                     <div class="d-count" data-count="ai"></div>
                 </button>
-                <button class="domain-card" data-domain="cyber">
+                <button class="domain-card" data-domain="cyber"
+                    aria-label="Open cybersecurity projects and launch the live Phantom-Droid demo">
                     <div class="d-icon">◈</div>
                     <h4>Cybersecurity</h4>
                     <p>Network security, vulnerability analysis and secure system design.</p>
+                    <div class="cyber-demo-note">Live paired demo · Opens viewer + sender · Best on PC</div>
                     <div class="d-count" data-count="cyber"></div>
                 </button>
                 <button class="domain-card" data-domain="software">
@@ -7514,6 +7527,10 @@ MOBILE
 
                 renderProjects(domain);
                 document.getElementById('work').scrollIntoView({ behavior: 'smooth' });
+
+                if (domain === 'cyber') {
+                    openCybersecurityDemo();
+                }
             });
         });
 
@@ -9309,6 +9326,37 @@ MOBILE
         openAssociationFromHash();
 
         /* ========================================================
+           PHANTOM-DROID LIVE CYBERSECURITY DEMO
+           One portfolio click opens two coordinated tabs:
+           viewer/receiver + sender. The remote application creates
+           one temporary session and uses its existing consent gates.
+           ======================================================== */
+        function openCybersecurityDemo() {
+            const demoOrigin = 'https://phantom-droid-screen-share.onrender.com';
+            const launchUrl = `${demoOrigin}/cyber/quick.html`;
+            const launchToken = (window.crypto && typeof window.crypto.randomUUID === 'function')
+                ? window.crypto.randomUUID().replace(/-/g, '')
+                : Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
+                    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+            const hostUrl = `${launchUrl}#role=host&launch=${encodeURIComponent(launchToken)}`;
+            const senderUrl = `${launchUrl}#role=guest&launch=${encodeURIComponent(launchToken)}`;
+
+            const hostTab = window.open(hostUrl, '_blank', 'noopener,noreferrer');
+            const senderTab = window.open(senderUrl, '_blank', 'noopener,noreferrer');
+
+            // A browser may block one or both tabs if pop-ups are disabled.
+            if (!hostTab || !senderTab) {
+                window.setTimeout(() => {
+                    window.alert(
+                        'Phantom-Droid needs two tabs for the live cybersecurity demo. ' +
+                        'Please allow pop-ups for this portfolio site and click Cybersecurity again.'
+                    );
+                }, 60);
+            }
+        }
+
+        /* ========================================================
            WHO I AM — INTERACTIVE DOMAIN ROUTING
            Electronics -> JET Club association
            Industrial -> Electrical Design & Commissioning experience
@@ -9380,6 +9428,7 @@ MOBILE
                             break;
                         case 'cyber':
                             openProjectDomain('cyber');
+                            openCybersecurityDemo();
                             break;
                     }
                 });
