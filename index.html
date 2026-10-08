@@ -1522,21 +1522,28 @@ MOBILE
         .security-play-hint {
             position: absolute;
             left: 50%;
-            bottom: calc(100% + 12px);
-            transform: translate(-50%, 6px);
+            bottom: calc(100% + 14px);
+            transform: translate(-50%, 7px);
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 8px 11px;
-            border: 1px solid rgba(47, 127, 120, .42);
+            justify-content: center;
+            gap: 8px;
+            width: max-content;
+            max-width: min(300px, calc(100vw - 40px));
+            padding: 9px 12px;
+            border: 1px solid rgba(93, 231, 255, .46);
             border-radius: 10px;
-            background: rgba(248, 243, 234, .97);
-            color: var(--text-primary);
-            box-shadow: 0 12px 28px rgba(75, 58, 37, .14), 0 2px 10px rgba(47, 127, 120, .08);
-            backdrop-filter: blur(12px);
+            background: rgba(7, 10, 15, .94);
+            color: #F4F8FA;
+            box-shadow: 0 16px 34px rgba(0,0,0,.34), 0 0 0 1px rgba(93,231,255,.06) inset;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             white-space: nowrap;
-            font: 600 .65rem var(--font-mono);
-            letter-spacing: .08em;
+            overflow: hidden;
+            font: 600 .63rem var(--font-mono);
+            letter-spacing: .075em;
+            text-transform: uppercase;
+            z-index: 20;
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
@@ -1551,23 +1558,23 @@ MOBILE
             width: 10px;
             height: 10px;
             transform: translateX(-50%) rotate(45deg);
-            background: rgba(248, 243, 234, .97);
-            border-right: 1px solid rgba(47, 127, 120, .24);
-            border-bottom: 1px solid rgba(47, 127, 120, .24);
+            background: rgba(7, 10, 15, .94);
+            border-right: 1px solid rgba(93, 231, 255, .30);
+            border-bottom: 1px solid rgba(93, 231, 255, .30);
         }
 
         .security-play-hint-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: var(--cyan);
-            box-shadow: 0 0 0 4px rgba(47, 127, 120, .08);
+            background: #5DE7FF;
+            box-shadow: 0 0 0 4px rgba(93,231,255,.09), 0 0 12px rgba(93,231,255,.32);
             flex: 0 0 auto;
         }
 
         .security-play-hint-arrow {
-            color: var(--cyan);
-            font-size: .8rem;
+            color: #5DE7FF;
+            font-size: .82rem;
             line-height: 1;
         }
 
@@ -1582,8 +1589,10 @@ MOBILE
             .security-play-hint {
                 left: 50%;
                 bottom: calc(100% + 10px);
-                padding: 7px 10px;
-                font-size: .60rem;
+                padding: 8px 10px;
+                font-size: .56rem;
+                letter-spacing: .06em;
+                max-width: min(260px, calc(100vw - 28px));
             }
         }
 
@@ -5833,7 +5842,7 @@ MOBILE
                             <span>SECURITY</span>
                             <span class="security-play-hint" aria-hidden="true">
                                 <span class="security-play-hint-dot"></span>
-                                <span>CLICK TO EXPERIENCE CYBERSECURITY</span>
+                                <span>OPEN CYBERSECURITY DEMO</span>
                                 <span class="security-play-hint-arrow">↗</span>
                             </span>
                         </button>
