@@ -1512,6 +1512,81 @@ MOBILE
             transform: translate(-50%, 0);
         }
 
+        /* ================= SECURITY → PHANTOM-DROID ================= */
+        /* Same interaction language as SOFTWARE and AI: hovering SECURITY
+           reveals the live-demo action without changing layout. */
+        .system-node-security {
+            z-index: 5;
+        }
+
+        .security-play-hint {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 12px);
+            transform: translate(-50%, 6px);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 11px;
+            border: 1px solid rgba(47, 127, 120, .42);
+            border-radius: 10px;
+            background: rgba(248, 243, 234, .97);
+            color: var(--text-primary);
+            box-shadow: 0 12px 28px rgba(75, 58, 37, .14), 0 2px 10px rgba(47, 127, 120, .08);
+            backdrop-filter: blur(12px);
+            white-space: nowrap;
+            font: 600 .65rem var(--font-mono);
+            letter-spacing: .08em;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+        }
+
+        .security-play-hint::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            width: 10px;
+            height: 10px;
+            transform: translateX(-50%) rotate(45deg);
+            background: rgba(248, 243, 234, .97);
+            border-right: 1px solid rgba(47, 127, 120, .24);
+            border-bottom: 1px solid rgba(47, 127, 120, .24);
+        }
+
+        .security-play-hint-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 0 4px rgba(47, 127, 120, .08);
+            flex: 0 0 auto;
+        }
+
+        .security-play-hint-arrow {
+            color: var(--cyan);
+            font-size: .8rem;
+            line-height: 1;
+        }
+
+        .system-node-security:hover .security-play-hint,
+        .system-node-security:focus-visible .security-play-hint {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+        }
+
+        @media (max-width: 760px) {
+            .security-play-hint {
+                left: 50%;
+                bottom: calc(100% + 10px);
+                padding: 7px 10px;
+                font-size: .60rem;
+            }
+        }
+
         /* Keep the hint usable on narrow screens without affecting the row. */
         @media (max-width: 760px) {
             .software-play-hint {
@@ -5752,9 +5827,15 @@ MOBILE
 
                         <span class="system-line">→</span>
 
-                        <button class="system-node" data-system="security" type="button">
+                        <button class="system-node system-node-security" data-system="security" type="button"
+                            aria-label="Cybersecurity — open Phantom-Droid live demo in two tabs">
                             <span class="system-dot"></span>
-                            SECURITY
+                            <span>SECURITY</span>
+                            <span class="security-play-hint" aria-hidden="true">
+                                <span class="security-play-hint-dot"></span>
+                                <span>CLICK TO EXPERIENCE CYBERSECURITY</span>
+                                <span class="security-play-hint-arrow">↗</span>
+                            </span>
                         </button>
 
                         <span class="system-line">→</span>
@@ -8453,7 +8534,8 @@ MOBILE
         /* ========================================================
            SYSTEM STACK
            SOFTWARE opens AeroStrike.
-           SECURITY and HARDWARE retain their existing active-state behavior.
+           SECURITY opens the paired Phantom-Droid cybersecurity demo.
+           HARDWARE retains its existing active-state behavior.
            AI is injected and managed by AI/chessmind/portfolio-integration.js.
            ======================================================== */
         const systemNodes = document.querySelectorAll('.system-node');
@@ -9342,8 +9424,8 @@ MOBILE
             const hostUrl = `${launchUrl}#role=host&launch=${encodeURIComponent(launchToken)}`;
             const senderUrl = `${launchUrl}#role=guest&launch=${encodeURIComponent(launchToken)}`;
 
-            const hostTab = window.open(hostUrl, '_blank', 'noopener,noreferrer');
-            const senderTab = window.open(senderUrl, '_blank', 'noopener,noreferrer');
+            const hostTab = window.open(hostUrl, '_blank');
+            const senderTab = window.open(senderUrl, '_blank');
 
             // A browser may block one or both tabs if pop-ups are disabled.
             if (!hostTab || !senderTab) {
@@ -9355,6 +9437,13 @@ MOBILE
                 }, 60);
             }
         }
+
+        const securityDemoNode = document.querySelector('.system-node-security');
+        securityDemoNode?.addEventListener('click', () => {
+            document.querySelectorAll('.system-node').forEach(item => item.classList.remove('active'));
+            securityDemoNode.classList.add('active');
+            openCybersecurityDemo();
+        });
 
         /* ========================================================
            WHO I AM — INTERACTIVE DOMAIN ROUTING
